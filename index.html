@@ -1324,29 +1324,22 @@ function CamaraScanner({ onResult, onClose }) {
         const reader = new ZXing.BrowserMultiFormatReader(hints);
         readerRef.current = reader;
 
-        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-        if (!devices || !devices.length) {
-          setError("No se encontró cámara en este dispositivo.");
-          setCargando(false);
-          return;
-        }
-
-        // Preferir cámara trasera
-        const trasera = devices.find(d =>
-          d.label.toLowerCase().includes("back") ||
-          d.label.toLowerCase().includes("rear") ||
-          d.label.toLowerCase().includes("trasera") ||
-          d.label.toLowerCase().includes("environment")
-        ) || devices[devices.length - 1];
-
         setCargando(false);
 
-        await reader.decodeFromVideoDevice(trasera.deviceId, videoRef.current, (result, err) => {
+        // Usar constraint de cámara trasera directamente (más compatible en mobile)
+        const constraints = {
+          video: {
+            facingMode: { ideal: "environment" },  // trasera en mobile
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        };
+
+        await reader.decodeFromConstraints(constraints, videoRef.current, (result, err) => {
           if (!activo) return;
           if (result) {
             const code = result.getText();
             if (code) {
-              // Vibrar si el dispositivo lo soporta
               if (navigator.vibrate) navigator.vibrate(80);
               onResult(code);
             }
