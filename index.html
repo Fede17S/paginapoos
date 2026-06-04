@@ -434,27 +434,23 @@ window.POS_LOADED = false;
       return;
     }
 
+    try {
     // 1. Negocio
     const { data: neg, error: negErr } = await sb.from('negocios_pos').select('*').eq('slug', NEGOCIO_SLUG).eq('activo', true).single();
     if (negErr || !neg) {
-      setState({ booted:true, loading:false, error:'Negocio no encontrado o inactivo: ' + NEGOCIO_SLUG });
+      setState({ booted:true, loading:false, error:'Negocio no encontrado o inactivo: ' + NEGOCIO_SLUG + (negErr ? ' — ' + negErr.message : '') });
       return;
     }
     window.NEGOCIO_ID = neg.id;
 
-    // 2. Cargar en paralelo: usuarios, categorías, productos
-    const [
-      { data: usuarios },
-      { data: categorias },
-      { data: productos },
-      { data: ventas },
-      { data: sesiones },
-    ] = await Promise.all([
-      sb.from('pos_cajeros').select('*').eq('negocio_id', neg.id).eq('activo', true),
-      sb.from('pos_categorias').select('*').eq('negocio_id', neg.id).order('orden'),
-      sb.from('pos_productos').select('*').eq('negocio_id', neg.id).eq('activo', true),
-      sb.from('pos_ventas').select('*').eq('negocio_id', neg.id).order('created_at', { ascending:false }).limit(200),
-      sb.from('pos_sesiones_caja').select('*').eq('negocio_id', neg.id).order('opened_at', { ascending:false }).limit(30),
+    // 2. Cargar en paralelo — cada query falla gracefully
+    const safeQuery = async (q) => { try { const r = await q; return r.data || []; } catch(e) { return []; } };
+    const [usuarios, categorias, productos, ventas, sesiones] = await Promise.all([
+      safeQuery(sb.from('pos_cajeros').select('*').eq('negocio_id', neg.id).eq('activo', true)),
+      safeQuery(sb.from('pos_categorias').select('*').eq('negocio_id', neg.id).order('orden')),
+      safeQuery(sb.from('pos_productos').select('*').eq('negocio_id', neg.id).eq('activo', true)),
+      safeQuery(sb.from('pos_ventas').select('*').eq('negocio_id', neg.id).order('created_at', { ascending:false }).limit(200)),
+      safeQuery(sb.from('pos_sesiones_caja').select('*').eq('negocio_id', neg.id).order('opened_at', { ascending:false }).limit(30)),
     ]);
 
     // Normalizar productos al formato interno
@@ -528,6 +524,9 @@ window.POS_LOADED = false;
       cashSessions: sesN,
       currentSessionId: sesionAbierta ? sesionAbierta.id : null,
     });
+    } catch(e) {
+      setState({ booted:true, loading:false, error:'Error al cargar el negocio: ' + (e.message||String(e)) });
+    }
   }
 
   // ---- ACCIONES ----
@@ -835,10 +834,26 @@ const { useState: useState2, useEffect: useEffect2 } = React;
 
 function LoginScreen({ onLogged }) {
   const s = useStore();
-  const [userId, setUserId] = useState2(s.users[0].id);
+  const [userId, setUserId] = useState2(s.users.length ? s.users[0].id : "");
   const [pin, setPin] = useState2("");
   const [error, setError] = useState2("");
   const now = useClock();
+
+  // Sin cajeros configurados
+  if (!s.users.length) return (
+    <div style={{height:"100vh",display:"grid",placeItems:"center",background:"var(--bg)"}}>
+      <div style={{textAlign:"center",maxWidth:380,padding:24}}>
+        <div style={{fontSize:48,marginBottom:16}}>👤</div>
+        <div style={{fontWeight:800,fontSize:18,color:"var(--ink)",marginBottom:8}}>Sin cajeros configurados</div>
+        <div style={{color:"var(--muted)",fontSize:14,marginBottom:16}}>
+          Este negocio aún no tiene cajeros. Agregalos desde <strong>DistribuPanel → Negocios POS → {s.settings.negocio || "este negocio"} → Cajeros</strong>.
+        </div>
+        <div style={{background:"var(--surface-2)",border:"1px solid var(--line)",borderRadius:10,padding:"10px 14px",fontFamily:"var(--mono)",fontSize:12,color:"var(--muted)"}}>
+          {window.location.href}
+        </div>
+      </div>
+    </div>
+  );
 
   function press(d) {
     setError("");
