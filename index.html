@@ -1291,7 +1291,7 @@ function VentaScreen({ pushToast }) {
 }
 
 // ── Escáner de cámara con ZXing ──────────────────────────
-function CamaraScanner({ onResult, onClose }) {
+function CamaraScanner({ onResult, onClose, modo }) {
   const videoRef = useRefV(null);
   const [error, setError] = useStateV(null);
   const [cargando, setCargando] = useStateV(true);
@@ -1386,7 +1386,9 @@ function CamaraScanner({ onResult, onClose }) {
         )}
       </div>
       <div className="cam-hint">
-        Apuntá la cámara al código de barras del producto
+        {modo === "barcode"
+          ? "Apuntá la cámara al código de barras — se guardará en el producto"
+          : "Apuntá la cámara al código de barras del producto"}
       </div>
       <button className="cam-btn-close" onClick={onClose}>✕ Cerrar</button>
     </div>
@@ -1598,6 +1600,7 @@ window.StockScreen = StockScreen;
 
 function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
   const [form, setForm] = useStateS(editing);
+  const [escanandoBarcode, setEscanandoBarcode] = useStateS(false);
   useEffectS(()=>setForm(editing),[editing]);
   if(!editing) return null;
   if(!form) return null;
@@ -1606,12 +1609,21 @@ function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
   const costo  = Number(form.costo)||0;
   const margen = precio>0?Math.round((1-costo/precio)*100):0;
   return (
+    <>
     <Modal open={!!editing} onClose={onClose} max={520}>
       <div className="modal-head"><Icon name="package" size={22} style={{color:"var(--green-600)"}}/><h2>{editing.nuevo?"Nuevo producto":"Editar producto"}</h2></div>
       <div className="modal-body col" style={{gap:14}}>
         <div className="field"><label>Nombre</label><input className="input" value={form.nombre} onChange={e=>set("nombre",e.target.value)} placeholder="Ej. Coca-Cola 500ml"/></div>
         <div className="row" style={{gap:14}}>
-          <div className="field grow"><label>Código de barras</label><input className="input mono" value={form.barcode} onChange={e=>set("barcode",e.target.value)} placeholder="779…"/></div>
+          <div className="field grow">
+            <label>Código de barras</label>
+            <div style={{display:"flex",gap:6}}>
+              <input className="input mono" value={form.barcode} onChange={e=>set("barcode",e.target.value)} placeholder="779…" style={{flex:1}}/>
+              <button type="button" className="btn-cam" style={{padding:"0 12px",borderRadius:10,flexShrink:0}} onClick={()=>setEscanandoBarcode(true)} title="Escanear con cámara">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </button>
+            </div>
+          </div>
           <div className="field" style={{width:150}}><label>Categoría</label>
             <select className="select" value={form.cat} onChange={e=>set("cat",e.target.value)}>
               {categories.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -1639,6 +1651,17 @@ function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
         </div>
       </div>
     </Modal>
+    {escanandoBarcode && (
+      <CamaraScanner
+        onResult={code => {
+          set("barcode", code);
+          setEscanandoBarcode(false);
+        }}
+        onClose={() => setEscanandoBarcode(false)}
+        modo="barcode"
+      />
+    )}
+    </>
   );
 }
 </script>
