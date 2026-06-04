@@ -958,7 +958,7 @@ function LoginScreen({ onLogged }) {
             <button className="key" onClick={()=>press("0")}>0</button>
             <button className="key key-sub" onClick={()=>press("del")}><Icon name="x" size={20}/></button>
           </div>
-          <div className="login-hint muted">PIN de demo · Admin: 1234 · Lucía: 1111 · Martín: 2222</div>
+
         </div>
       </div>
     </div>
@@ -1263,7 +1263,7 @@ function StockScreen({ pushToast }) {
             <option value="bajo">Stock bajo</option>
             <option value="sin">Sin stock</option>
           </select>
-          <button className="btn btn-primary" onClick={()=>setEditing({nuevo:true,nombre:"",cat:s.categories[0].id,barcode:"",precio:0,costo:0,stock:0,minStock:5,unidad:"u"})}>
+          <button className="btn btn-primary" onClick={()=>setEditing({nuevo:true,nombre:"",cat:(s.categories[0]&&s.categories[0].id)||"sin-cat",barcode:"",precio:0,costo:0,stock:0,minStock:5,unidad:"u"})}>
             <Icon name="plus" size={18}/>Nuevo producto
           </button>
         </div>
@@ -1308,8 +1308,11 @@ function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
   const [form, setForm] = useStateS(editing);
   useEffectS(()=>setForm(editing),[editing]);
   if(!editing) return null;
+  if(!form) return null;
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
-  const margen = form.precio>0?Math.round((1-form.costo/form.precio)*100):0;
+  const precio = Number(form.precio)||0;
+  const costo  = Number(form.costo)||0;
+  const margen = precio>0?Math.round((1-costo/precio)*100):0;
   return (
     <Modal open={!!editing} onClose={onClose} max={520}>
       <div className="modal-head"><Icon name="package" size={22} style={{color:"var(--green-600)"}}/><h2>{editing.nuevo?"Nuevo producto":"Editar producto"}</h2></div>
@@ -1324,8 +1327,8 @@ function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
           </div>
         </div>
         <div className="row" style={{gap:14}}>
-          <div className="field grow"><label>Costo</label><input className="input mono" value={form.costo} onChange={e=>set("costo",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
-          <div className="field grow"><label>Precio de venta</label><input className="input mono" value={form.precio} onChange={e=>set("precio",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
+          <div className="field grow"><label>Costo</label><input className="input mono" value={costo} onChange={e=>set("costo",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
+          <div className="field grow"><label>Precio de venta</label><input className="input mono" value={precio} onChange={e=>set("precio",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
           <div className="field" style={{width:110}}><label>Margen</label><div className="input mono" style={{background:"var(--surface-2)",color:margen>=0?"var(--green-700)":"var(--danger)"}}>{margen}%</div></div>
         </div>
         <div className="row" style={{gap:14}}>
