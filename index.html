@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
-<!-- ZXing — lector de códigos de barras por cámara -->
-<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js" crossorigin="anonymous"></script>
+<!-- html5-qrcode — lector de códigos de barras por cámara -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
 
 <style>
 /* ============================================================
@@ -1290,105 +1290,93 @@ function VentaScreen({ pushToast }) {
   );
 }
 
-// ── Escáner de cámara con ZXing ──────────────────────────
+// ── Escáner de cámara con html5-qrcode ──────────────────
 function CamaraScanner({ onResult, onClose, modo }) {
-  const videoRef = useRefV(null);
   const [error, setError] = useStateV(null);
   const [cargando, setCargando] = useStateV(true);
-  const readerRef = useRefV(null);
+  const [ultimo, setUltimo] = useStateV(null);
+  const scannerRef = useRefV(null);
+  const divId = "cam-scanner-div";
 
   useEffectV(() => {
-    let activo = true;
-
-    async function iniciar() {
-      try {
-        if (typeof ZXing === "undefined") {
-          setError("La librería de escaneo no está disponible. Verificá tu conexión.");
-          setCargando(false);
-          return;
-        }
-
-        const hints = new Map();
-        const formats = [
-          ZXing.BarcodeFormat.EAN_13,
-          ZXing.BarcodeFormat.EAN_8,
-          ZXing.BarcodeFormat.CODE_128,
-          ZXing.BarcodeFormat.CODE_39,
-          ZXing.BarcodeFormat.UPC_A,
-          ZXing.BarcodeFormat.UPC_E,
-          ZXing.BarcodeFormat.QR_CODE,
-        ];
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-        const reader = new ZXing.BrowserMultiFormatReader(hints);
-        readerRef.current = reader;
-
-        setCargando(false);
-
-        // Usar constraint de cámara trasera directamente (más compatible en mobile)
-        const constraints = {
-          video: {
-            facingMode: { ideal: "environment" },  // trasera en mobile
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          }
-        };
-
-        await reader.decodeFromConstraints(constraints, videoRef.current, (result, err) => {
-          if (!activo) return;
-          if (result) {
-            const code = result.getText();
-            if (code) {
-              if (navigator.vibrate) navigator.vibrate(80);
-              onResult(code);
-            }
-          }
-        });
-      } catch(e) {
-        if (!activo) return;
-        if (e.name === "NotAllowedError") {
-          setError("Permiso de cámara denegado. Habilitalo desde la configuración del navegador.");
-        } else if (e.name === "NotFoundError") {
-          setError("No se encontró cámara disponible.");
-        } else {
-          setError("Error al iniciar la cámara: " + e.message);
-        }
-        setCargando(false);
-      }
+    if (typeof Html5Qrcode === "undefined") {
+      setError("Librería de escaneo no disponible. Verificá tu conexión.");
+      setCargando(false);
+      return;
     }
 
-    iniciar();
+    const scanner = new Html5Qrcode(divId, { verbose: false });
+    scannerRef.current = scanner;
+
+    const config = {
+      fps: 15,
+      qrbox: { width: 280, height: 120 },
+      aspectRatio: 1.5,
+      disableFlip: false,
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.QR_CODE,
+      ],
+    };
+
+    scanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        if (decodedText && decodedText !== ultimo) {
+          setUltimo(decodedText);
+          if (navigator.vibrate) navigator.vibrate(100);
+          scanner.stop().catch(()=>{});
+          onResult(decodedText);
+        }
+      },
+      () => {}
+    )
+    .then(() => setCargando(false))
+    .catch(e => {
+      const msg = e && e.toString ? e.toString() : String(e);
+      if (msg.includes("NotAllowed") || msg.includes("Permission")) {
+        setError("Permiso de cámara denegado. Habilitalo en la configuración del navegador.");
+      } else if (msg.includes("NotFound") || msg.includes("Requested device not found")) {
+        setError("No se encontró cámara en este dispositivo.");
+      } else {
+        setError("No se pudo iniciar la cámara. Probá recargar la página.");
+      }
+      setCargando(false);
+    });
 
     return () => {
-      activo = false;
-      if (readerRef.current) {
-        try { readerRef.current.reset(); } catch(e) {}
-      }
+      scanner.stop().catch(()=>{});
     };
   }, []);
 
   return (
     <div className="cam-overlay" onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div className="cam-wrap">
-        <video ref={videoRef} autoPlay playsInline muted style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-        {!error && <div className="cam-frame"></div>}
+      <div className="cam-wrap" style={{position:"relative",overflow:"hidden",borderRadius:16,background:"#000",width:"min(92vw,480px)",aspectRatio:"4/3"}}>
+        {/* html5-qrcode renderiza el video acá */}
+        <div id={divId} style={{width:"100%",height:"100%"}}></div>
         {cargando && !error && (
-          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.5)"}}>
-            <div style={{width:36,height:36,border:"4px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin .7s linear infinite"}}></div>
+          <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.6)",gap:12}}>
+            <div style={{width:38,height:38,border:"4px solid rgba(255,255,255,.25)",borderTopColor:"#25A36C",borderRadius:"50%",animation:"spin .7s linear infinite"}}></div>
+            <div style={{color:"rgba(255,255,255,.8)",fontSize:13}}>Iniciando cámara…</div>
           </div>
         )}
         {error && (
-          <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.8)",padding:24,gap:12}}>
-            <div style={{fontSize:32}}>📷</div>
-            <div style={{color:"#fff",fontSize:13,textAlign:"center",lineHeight:1.5}}>{error}</div>
+          <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.85)",padding:24,gap:14}}>
+            <div style={{fontSize:40}}>📷</div>
+            <div style={{color:"#fff",fontSize:13,textAlign:"center",lineHeight:1.6}}>{error}</div>
           </div>
         )}
       </div>
       <div className="cam-hint">
         {modo === "barcode"
-          ? "Apuntá la cámara al código de barras — se guardará en el producto"
-          : "Apuntá la cámara al código de barras del producto"}
+          ? "Apuntá al código de barras — se guarda en el producto automáticamente"
+          : "Apuntá al código de barras para agregar el producto al carrito"}
       </div>
       <button className="cam-btn-close" onClick={onClose}>✕ Cerrar</button>
     </div>
