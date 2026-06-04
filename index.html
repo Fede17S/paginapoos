@@ -359,147 +359,178 @@ input, select, textarea { font-family: inherit; }
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 
-<!-- ============================================================
-     DATOS SEED
-     ============================================================ -->
-<script>
-window.SEED_CATEGORIES = [
-  { id: "bebidas",     nombre: "Bebidas" },
-  { id: "golosinas",  nombre: "Golosinas" },
-  { id: "snacks",     nombre: "Snacks" },
-  { id: "cigarrillos",nombre: "Cigarrillos" },
-  { id: "almacen",    nombre: "Almacén" },
-  { id: "lacteos",    nombre: "Lácteos" },
-  { id: "panificados",nombre: "Panificados" },
-  { id: "limpieza",   nombre: "Limpieza" },
-];
-
-window.SEED_PRODUCTS = [
-  { id:"p001",nombre:"Coca-Cola 500ml",       cat:"bebidas",    barcode:"7790895000123",precio:1500,costo:950, stock:48,minStock:12,unidad:"u" },
-  { id:"p002",nombre:"Coca-Cola 1.5L",        cat:"bebidas",    barcode:"7790895000147",precio:3200,costo:2100,stock:30,minStock:8, unidad:"u" },
-  { id:"p003",nombre:"Agua Mineral 500ml",    cat:"bebidas",    barcode:"7790895000543",precio:900, costo:520, stock:60,minStock:15,unidad:"u" },
-  { id:"p004",nombre:"Sprite 500ml",          cat:"bebidas",    barcode:"7790895000178",precio:1450,costo:920, stock:24,minStock:12,unidad:"u" },
-  { id:"p005",nombre:"Cerveza Quilmes 1L",    cat:"bebidas",    barcode:"7792798001230",precio:2800,costo:1850,stock:18,minStock:10,unidad:"u" },
-  { id:"p006",nombre:"Energizante Speed 500", cat:"bebidas",    barcode:"7790070001111",precio:2600,costo:1700,stock:9, minStock:10,unidad:"u" },
-  { id:"p007",nombre:"Jugo Cepita Naranja 1L",cat:"bebidas",    barcode:"7790895111200",precio:2100,costo:1350,stock:14,minStock:6, unidad:"u" },
-  { id:"p008",nombre:"Alfajor Jorgito",       cat:"golosinas",  barcode:"7791234000019",precio:850, costo:520, stock:72,minStock:20,unidad:"u" },
-  { id:"p009",nombre:"Chocolate Milka 55g",   cat:"golosinas",  barcode:"7622300336745",precio:1900,costo:1250,stock:26,minStock:10,unidad:"u" },
-  { id:"p010",nombre:"Chicles Beldent x10",   cat:"golosinas",  barcode:"7790310000027",precio:650, costo:380, stock:40,minStock:15,unidad:"u" },
-  { id:"p011",nombre:"Caramelos Sugus",       cat:"golosinas",  barcode:"7790310985211",precio:380, costo:210, stock:90,minStock:25,unidad:"u" },
-  { id:"p012",nombre:"Bon o Bon unidad",      cat:"golosinas",  barcode:"7790040999017",precio:420, costo:240, stock:110,minStock:30,unidad:"u" },
-  { id:"p013",nombre:"Tita x3",               cat:"golosinas",  barcode:"7790040123410",precio:720, costo:450, stock:35,minStock:12,unidad:"u" },
-  { id:"p014",nombre:"Papas Lays Clásicas",   cat:"snacks",     barcode:"7790310771025",precio:2400,costo:1550,stock:22,minStock:10,unidad:"u" },
-  { id:"p015",nombre:"Doritos Queso",         cat:"snacks",     barcode:"7790310772015",precio:2600,costo:1700,stock:5, minStock:10,unidad:"u" },
-  { id:"p016",nombre:"Maní Salado 100g",      cat:"snacks",     barcode:"7791111000034",precio:1300,costo:800, stock:30,minStock:8, unidad:"u" },
-  { id:"p017",nombre:"Palitos Pehuamar",      cat:"snacks",     barcode:"7790310773012",precio:1850,costo:1200,stock:16,minStock:8, unidad:"u" },
-  { id:"p018",nombre:"Marlboro Box 20",       cat:"cigarrillos",barcode:"7790000000010",precio:3800,costo:3000,stock:28,minStock:10,unidad:"u" },
-  { id:"p019",nombre:"Philip Morris Box 20",  cat:"cigarrillos",barcode:"7790000000027",precio:3600,costo:2850,stock:20,minStock:10,unidad:"u" },
-  { id:"p020",nombre:"Lucky Strike Box 20",   cat:"cigarrillos",barcode:"7790000000034",precio:3700,costo:2900,stock:7, minStock:10,unidad:"u" },
-  { id:"p021",nombre:"Yerba Mate 1kg",        cat:"almacen",    barcode:"7792200000015",precio:4900,costo:3400,stock:25,minStock:8, unidad:"u" },
-  { id:"p022",nombre:"Azúcar 1kg",            cat:"almacen",    barcode:"7792200000022",precio:1700,costo:1100,stock:33,minStock:10,unidad:"u" },
-  { id:"p023",nombre:"Fideos Spaghetti 500g", cat:"almacen",    barcode:"7792200000039",precio:1400,costo:880, stock:41,minStock:12,unidad:"u" },
-  { id:"p024",nombre:"Aceite Girasol 900ml",  cat:"almacen",    barcode:"7792200000046",precio:3100,costo:2200,stock:19,minStock:8, unidad:"u" },
-  { id:"p025",nombre:"Arroz 1kg",             cat:"almacen",    barcode:"7792200000053",precio:1950,costo:1300,stock:28,minStock:10,unidad:"u" },
-  { id:"p026",nombre:"Sal Fina 500g",         cat:"almacen",    barcode:"7792200000060",precio:750, costo:420, stock:36,minStock:10,unidad:"u" },
-  { id:"p027",nombre:"Leche Entera 1L",       cat:"lacteos",    barcode:"7790080000017",precio:1600,costo:1050,stock:22,minStock:12,unidad:"u" },
-  { id:"p028",nombre:"Yogur Bebible 1L",      cat:"lacteos",    barcode:"7790080000024",precio:2300,costo:1500,stock:11,minStock:6, unidad:"u" },
-  { id:"p029",nombre:"Queso Cremoso x kg",    cat:"lacteos",    barcode:"0200001000000",precio:8900,costo:6200,stock:6, minStock:3, unidad:"kg"},
-  { id:"p030",nombre:"Manteca 200g",          cat:"lacteos",    barcode:"7790080000048",precio:2100,costo:1400,stock:14,minStock:6, unidad:"u" },
-  { id:"p031",nombre:"Pan Lactal Bimbo",      cat:"panificados",barcode:"7790070111014",precio:2400,costo:1600,stock:12,minStock:6, unidad:"u" },
-  { id:"p032",nombre:"Facturas x6",           cat:"panificados",barcode:"0300001000000",precio:3200,costo:1900,stock:8, minStock:4, unidad:"u" },
-  { id:"p033",nombre:"Pan Francés x kg",      cat:"panificados",barcode:"0300002000000",precio:2800,costo:1700,stock:10,minStock:4, unidad:"kg"},
-  { id:"p034",nombre:"Lavandina 1L",          cat:"limpieza",   barcode:"7791290000011",precio:1200,costo:700, stock:20,minStock:8, unidad:"u" },
-  { id:"p035",nombre:"Detergente 750ml",      cat:"limpieza",   barcode:"7791290000028",precio:2200,costo:1450,stock:15,minStock:6, unidad:"u" },
-  { id:"p036",nombre:"Rollo Cocina x3",       cat:"limpieza",   barcode:"7791290000035",precio:2900,costo:1900,stock:4, minStock:6, unidad:"u" },
-];
-
-window.SEED_USERS = [
-  { id:"u1", nombre:"Admin",  rol:"Administrador", pin:"1234", inicial:"A" },
-  { id:"u2", nombre:"Lucía",  rol:"Cajero",        pin:"1111", inicial:"L" },
-  { id:"u3", nombre:"Martín", rol:"Cajero",        pin:"2222", inicial:"M" },
-];
-
-window.SEED_SETTINGS = {
-  negocio:"Mercadito San Juan", cuit:"30-71234567-8",
-  direccion:"Av. San Juan 1450, CABA", moneda:"ARS", simbolo:"$",
-  ivaIncluido:true, ticketFooter:"¡Gracias por su compra!",
-};
-
-window.SEED_PAYMENT_METHODS = [
-  { id:"efectivo",      nombre:"Efectivo",                 atajo:"F1" },
-  { id:"tarjeta",       nombre:"Tarjeta",                  atajo:"F2" },
-  { id:"qr",            nombre:"QR / Billetera",           atajo:"F3" },
-  { id:"transferencia", nombre:"Transferencia",            atajo:"F4" },
-  { id:"fiado",         nombre:"Cuenta corriente (fiado)", atajo:"F5" },
-];
-
-window.SEED_HISTORY_DAYS = 7;
-</script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- ============================================================
-     STORE GLOBAL
+     CARGA DESDE SUPABASE + STORE GLOBAL
      ============================================================ -->
-<script>
-(function () {
-  const KEY = "pos_state_v3";
-  const uid = (p) => p + Math.random().toString(36).slice(2, 9);
+<script type="text/babel">
+// ---- CONFIG ----
+const SUPABASE_URL = 'https://vhoswhyixqtomgqudigj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3N3aHlpeHF0b21ncXVkaWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTI4ODIsImV4cCI6MjA5NTM4ODg4Mn0.gjUaVJ1RvF3KrjfXVyh8wYIso4QW6RtIfFRbkd0PyA8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Lee el negocio del query string: ?n=mercadito-san-juan
+const NEGOCIO_SLUG = new URLSearchParams(window.location.search).get('n') || '';
+
+// Métodos de pago fijos
+window.PAYMENT_METHODS = [
+  { id:'efectivo',      nombre:'Efectivo',                 atajo:'F1' },
+  { id:'tarjeta',       nombre:'Tarjeta',                  atajo:'F2' },
+  { id:'qr',            nombre:'QR / Billetera',           atajo:'F3' },
+  { id:'transferencia', nombre:'Transferencia',            atajo:'F4' },
+  { id:'fiado',         nombre:'Cuenta corriente (fiado)', atajo:'F5' },
+];
+
+// Estado global - se llena async desde Supabase
+window.NEGOCIO_ID = null;
+window.POS_LOADED = false;
+
+// ---- STORE ----
+(function() {
+  const uid = p => p + Math.random().toString(36).slice(2,9);
   function nowISO() { return new Date().toISOString(); }
-  function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
 
-  function seedSales(products) {
-    const sales = [];
-    const days = window.SEED_HISTORY_DAYS || 7;
-    const methods = ["efectivo","tarjeta","qr","transferencia"];
-    for (let d = days; d >= 1; d--) {
-      const base = startOfDay(new Date());
-      base.setDate(base.getDate() - d);
-      const ticketCount = 8 + Math.floor(Math.random() * 14);
-      for (let t = 0; t < ticketCount; t++) {
-        const items = [];
-        const n = 1 + Math.floor(Math.random() * 4);
-        for (let i = 0; i < n; i++) {
-          const p = products[Math.floor(Math.random() * products.length)];
-          const qty = 1 + Math.floor(Math.random() * 3);
-          items.push({ productId:p.id, nombre:p.nombre, precio:p.precio, costo:p.costo, qty });
-        }
-        const subtotal = items.reduce((s,it) => s + it.precio * it.qty, 0);
-        const ts = new Date(base);
-        ts.setHours(9 + Math.floor(Math.random() * 12), Math.floor(Math.random() * 60));
-        const method = methods[Math.floor(Math.random() * methods.length)];
-        sales.push({ id:uid("v"), ts:ts.toISOString(), items, subtotal, descuento:0, total:subtotal,
-          payments:[{ method, amount:subtotal }], cajero:"Lucía", sessionId:null });
-      }
-    }
-    return sales;
-  }
+  // Cache local por negocio para operaciones offline
+  const CACHE_KEY = 'pos_cache_' + NEGOCIO_SLUG;
 
-  function initial() {
-    const products = JSON.parse(JSON.stringify(window.SEED_PRODUCTS));
+  function emptyState() {
     return {
-      booted:true, user:null, products,
-      categories:window.SEED_CATEGORIES, users:window.SEED_USERS,
-      settings:window.SEED_SETTINGS, paymentMethods:window.SEED_PAYMENT_METHODS,
-      cart:[], descuento:0, sales:seedSales(products), cashSessions:[], currentSessionId:null, lastSale:null,
+      booted: false,
+      loading: true,
+      error: null,
+      user: null,
+      negocioId: null,
+      products: [],
+      categories: [],
+      users: [],
+      settings: { negocio:'', cuit:'', direccion:'', moneda:'ARS', simbolo:'$', ivaIncluido:true, ticketFooter:'¡Gracias por su compra!' },
+      paymentMethods: window.PAYMENT_METHODS,
+      cart: [],
+      descuento: 0,
+      sales: [],
+      cashSessions: [],
+      currentSessionId: null,
+      lastSale: null,
     };
   }
 
-  let state = load() || initial();
+  let state = emptyState();
   const subs = new Set();
-
-  function load() {
-    try { const raw=localStorage.getItem(KEY); if(!raw) return null; const s=JSON.parse(raw); return s&&s.booted?s:null; } catch(e){return null;}
-  }
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
   function emit() { subs.forEach(fn => fn()); }
   function setState(patch) {
-    const next = typeof patch==="function" ? patch(state) : patch;
+    const next = typeof patch === 'function' ? patch(state) : patch;
     state = Object.assign({}, state, next);
-    persist(); emit();
+    emit();
   }
   function getState() { return state; }
   function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
-  function reset() { state = initial(); persist(); emit(); }
 
+  // ---- CARGA INICIAL DESDE SUPABASE ----
+  async function cargarNegocio() {
+    if (!NEGOCIO_SLUG) {
+      setState({ booted:true, loading:false, error:'No se especificó ningún negocio en la URL (parámetro ?n=)' });
+      return;
+    }
+
+    // 1. Negocio
+    const { data: neg, error: negErr } = await sb.from('negocios_pos').select('*').eq('slug', NEGOCIO_SLUG).eq('activo', true).single();
+    if (negErr || !neg) {
+      setState({ booted:true, loading:false, error:'Negocio no encontrado o inactivo: ' + NEGOCIO_SLUG });
+      return;
+    }
+    window.NEGOCIO_ID = neg.id;
+
+    // 2. Cargar en paralelo: usuarios, categorías, productos
+    const [
+      { data: usuarios },
+      { data: categorias },
+      { data: productos },
+      { data: ventas },
+      { data: sesiones },
+    ] = await Promise.all([
+      sb.from('pos_cajeros').select('*').eq('negocio_id', neg.id).eq('activo', true),
+      sb.from('pos_categorias').select('*').eq('negocio_id', neg.id).order('orden'),
+      sb.from('pos_productos').select('*').eq('negocio_id', neg.id).eq('activo', true),
+      sb.from('pos_ventas').select('*').eq('negocio_id', neg.id).order('created_at', { ascending:false }).limit(200),
+      sb.from('pos_sesiones_caja').select('*').eq('negocio_id', neg.id).order('opened_at', { ascending:false }).limit(30),
+    ]);
+
+    // Normalizar productos al formato interno
+    const prods = (productos||[]).map(p => ({
+      id: p.id,
+      nombre: p.nombre,
+      cat: p.categoria_id || 'sin-cat',
+      barcode: p.barcode || '',
+      precio: Number(p.precio),
+      costo: Number(p.costo),
+      stock: Number(p.stock),
+      minStock: Number(p.min_stock),
+      unidad: p.unidad || 'u',
+    }));
+
+    // Normalizar categorías
+    const cats = (categorias||[]).map(c => ({ id: c.id, nombre: c.nombre }));
+    if (!cats.length) cats.push({ id:'sin-cat', nombre:'General' });
+
+    // Normalizar usuarios
+    const usrs = (usuarios||[]).map(u => ({
+      id: u.id, nombre: u.nombre, rol: u.rol, pin: u.pin, inicial: u.inicial,
+    }));
+
+    // Normalizar ventas
+    const venN = (ventas||[]).map(v => ({
+      id: v.id, numero: v.numero, ts: v.created_at,
+      items: v.items || [], subtotal: Number(v.subtotal),
+      descuento: Number(v.descuento), total: Number(v.total),
+      payments: v.payments || [], cajero: v.cajero, sessionId: v.sesion_id,
+    }));
+
+    // Normalizar sesiones
+    const sesN = (sesiones||[]).map(s => ({
+      id: s.id, cajero: s.cajero_nombre, openedAt: s.opened_at,
+      openingAmount: Number(s.opening_amount), closedAt: s.closed_at,
+      status: s.status, counted: s.counted, expectedByMethod: s.expected_by_method,
+      expectedEfectivo: Number(s.expected_efectivo||0),
+      difference: Number(s.difference||0),
+      totalVendido: Number(s.total_vendido||0), ticketCount: s.ticket_count||0,
+    }));
+
+    // Sesión abierta
+    const sesionAbierta = sesN.find(s => s.status === 'abierta');
+
+    // Recuperar carrito de cache local
+    let cartCache = [];
+    try { const c = JSON.parse(localStorage.getItem(CACHE_KEY+'_cart')||'[]'); cartCache = c; } catch(e){}
+
+    setState({
+      booted: true,
+      loading: false,
+      error: null,
+      negocioId: neg.id,
+      products: prods,
+      categories: cats,
+      users: usrs,
+      settings: {
+        negocio: neg.nombre,
+        cuit: neg.cuit || '',
+        direccion: neg.direccion || '',
+        moneda: neg.moneda || 'ARS',
+        simbolo: neg.simbolo || '$',
+        ivaIncluido: neg.iva_incluido !== false,
+        ticketFooter: neg.ticket_footer || '¡Gracias por su compra!',
+      },
+      paymentMethods: window.PAYMENT_METHODS,
+      cart: cartCache,
+      descuento: 0,
+      sales: venN,
+      cashSessions: sesN,
+      currentSessionId: sesionAbierta ? sesionAbierta.id : null,
+    });
+  }
+
+  // ---- ACCIONES ----
   function findProduct(id) { return state.products.find(p => p.id===id); }
   function cartLines() {
     return state.cart.map(c => {
@@ -512,19 +543,19 @@ window.SEED_HISTORY_DAYS = 7;
   function cartCount() { return state.cart.reduce((s,c) => s+c.qty, 0); }
   function currentSession() { return state.cashSessions.find(s => s.id===state.currentSessionId)||null; }
 
+  function saveCartCache(cart) {
+    try { localStorage.setItem(CACHE_KEY+'_cart', JSON.stringify(cart)); } catch(e){}
+  }
+
   const POS = {
     login(userId, pin) {
       const u = state.users.find(x => x.id===userId);
-      if (!u) return {ok:false, error:"Usuario no encontrado"};
-      if (String(pin)!==String(u.pin)) return {ok:false, error:"PIN incorrecto"};
-      if (!currentSession()) {
-        const s = { id:uid("s"), cajero:u.nombre, openedAt:nowISO(), openingAmount:10000, closedAt:null, status:"abierta", counted:null, expected:null, difference:null };
-        setState(st => ({ cashSessions:[...st.cashSessions,s], currentSessionId:s.id, user:u }));
-        return {ok:true};
-      }
+      if (!u) return {ok:false, error:'Usuario no encontrado'};
+      if (String(pin)!==String(u.pin)) return {ok:false, error:'PIN incorrecto'};
       setState({user:u}); return {ok:true};
     },
     logout() { setState({user:null}); },
+
     addToCart(productId, qty=1) {
       const p = findProduct(productId);
       if (!p) return {ok:false};
@@ -533,76 +564,155 @@ window.SEED_HISTORY_DAYS = 7;
         const cart = existing
           ? st.cart.map(c => c.productId===productId ? {...c, qty:c.qty+qty} : c)
           : [...st.cart, {productId, qty}];
+        saveCartCache(cart);
         return {cart};
       });
       return {ok:true, producto:p};
     },
     addByBarcode(code) {
       const p = state.products.find(x => x.barcode===String(code).trim());
-      if (!p) return {ok:false, error:"Código no encontrado"};
-      POS.addToCart(p.id, 1); return {ok:true, producto:p};
+      if (!p) return {ok:false, error:'Código no encontrado'};
+      POS.addToCart(p.id); return {ok:true, producto:p};
     },
     setQty(productId, qty) {
       qty = Math.max(0, Math.round(qty));
-      setState(st => ({ cart: qty===0 ? st.cart.filter(c => c.productId!==productId) : st.cart.map(c => c.productId===productId ? {...c,qty} : c) }));
+      setState(st => {
+        const cart = qty===0
+          ? st.cart.filter(c => c.productId!==productId)
+          : st.cart.map(c => c.productId===productId ? {...c,qty} : c);
+        saveCartCache(cart);
+        return {cart};
+      });
     },
-    inc(productId) { const c=state.cart.find(x => x.productId===productId); POS.setQty(productId,(c?c.qty:0)+1); },
-    dec(productId) { const c=state.cart.find(x => x.productId===productId); POS.setQty(productId,(c?c.qty:0)-1); },
-    removeFromCart(productId) { setState(st => ({cart:st.cart.filter(c => c.productId!==productId)})); },
-    clearCart() { setState({cart:[],descuento:0}); },
+    removeFromCart(productId) {
+      setState(st => { const cart=st.cart.filter(c=>c.productId!==productId); saveCartCache(cart); return {cart}; });
+    },
+    clearCart() { saveCartCache([]); setState({cart:[],descuento:0}); },
     setDescuento(amount) { setState({descuento:Math.max(0,Math.round(amount||0))}); },
-    checkout(payments) {
+
+    async checkout(payments) {
       const lines = cartLines();
-      if (lines.length===0) return {ok:false, error:"Carrito vacío"};
+      if (!lines.length) return {ok:false, error:'Carrito vacío'};
       const subtotal = cartSubtotal();
       const descuento = state.descuento||0;
       const total = cartTotal();
-      const sale = {
-        id:uid("v"), numero:state.sales.length+1, ts:nowISO(),
-        items:lines.map(l => ({productId:l.productId, nombre:l.producto.nombre, precio:l.producto.precio, costo:l.producto.costo, qty:l.qty})),
-        subtotal, descuento, total, payments,
-        cajero:state.user?state.user.nombre:"—", sessionId:state.currentSessionId,
+      const sesion = currentSession();
+
+      // Guardar venta en Supabase
+      const ventaData = {
+        negocio_id: state.negocioId,
+        sesion_id: sesion ? sesion.id : null,
+        numero: state.sales.length + 1,
+        cajero: state.user ? state.user.nombre : '—',
+        items: lines.map(l => ({ productId:l.productId, nombre:l.producto.nombre, precio:l.producto.precio, costo:l.producto.costo, qty:l.qty })),
+        subtotal, descuento, total,
+        payments,
       };
+      const { data: ventaG, error: ventaErr } = await sb.from('pos_ventas').insert(ventaData).select().single();
+      if (ventaErr) return {ok:false, error:ventaErr.message};
+
+      // Actualizar stock en Supabase
+      await Promise.all(lines.map(l =>
+        sb.from('pos_productos').update({ stock: Math.max(0, ((findProduct(l.productId)||{stock:0}).stock||0) - l.qty) }).eq('id', l.productId)
+      ));
+
+      const saleNorm = { id:ventaG.id, numero:ventaG.numero, ts:ventaG.created_at, items:ventaG.items, subtotal, descuento, total, payments, cajero:ventaG.cajero, sessionId:ventaG.sesion_id };
+
       setState(st => {
-        const products = st.products.map(p => { const ln=lines.find(l=>l.productId===p.id); return ln?{...p,stock:+(p.stock-ln.qty).toFixed(3)}:p; });
-        return { products, sales:[...st.sales,sale], cart:[], descuento:0, lastSale:sale };
+        const products = st.products.map(p => {
+          const ln = lines.find(l=>l.productId===p.id);
+          return ln ? {...p, stock:Math.max(0,+(p.stock-ln.qty).toFixed(3))} : p;
+        });
+        return { products, sales:[saleNorm,...st.sales], cart:[], descuento:0, lastSale:saleNorm };
       });
-      return {ok:true, sale};
+      saveCartCache([]);
+      return {ok:true, sale:saleNorm};
     },
-    upsertProduct(prod) {
-      setState(st => {
-        const exists = st.products.find(p => p.id===prod.id);
-        const products = exists
-          ? st.products.map(p => p.id===prod.id ? {...p,...prod} : p)
-          : [...st.products, {...prod, id:prod.id||uid("p")}];
-        return {products};
-      });
+
+    async upsertProduct(prod) {
+      const catId = prod.cat === 'sin-cat' ? null : prod.cat;
+      const datos = {
+        negocio_id: state.negocioId,
+        categoria_id: catId,
+        nombre: prod.nombre,
+        barcode: prod.barcode || '',
+        precio: prod.precio,
+        costo: prod.costo,
+        stock: prod.stock,
+        min_stock: prod.minStock,
+        unidad: prod.unidad,
+        activo: true,
+      };
+      if (prod.nuevo || !prod.id) {
+        const { data, error } = await sb.from('pos_productos').insert(datos).select().single();
+        if (error) return;
+        const newProd = { id:data.id, nombre:data.nombre, cat:data.categoria_id||'sin-cat', barcode:data.barcode, precio:Number(data.precio), costo:Number(data.costo), stock:Number(data.stock), minStock:Number(data.min_stock), unidad:data.unidad };
+        setState(st => ({ products:[...st.products, newProd] }));
+      } else {
+        await sb.from('pos_productos').update(datos).eq('id', prod.id);
+        setState(st => ({ products:st.products.map(p => p.id===prod.id ? {...p,...{nombre:prod.nombre,cat:prod.cat,barcode:prod.barcode,precio:prod.precio,costo:prod.costo,minStock:prod.minStock,unidad:prod.unidad}} : p) }));
+      }
     },
-    setStock(productId, value) { setState(st => ({products:st.products.map(p => p.id===productId?{...p,stock:Math.max(0,Number(value)||0)}:p)})); },
-    adjustStock(productId, delta) { setState(st => ({products:st.products.map(p => p.id===productId?{...p,stock:Math.max(0,p.stock+delta)}:p)})); },
-    deleteProduct(productId) { setState(st => ({products:st.products.filter(p => p.id!==productId)})); },
-    closeSession(countedByMethod) {
+
+    async adjustStock(productId, delta) {
+      const p = findProduct(productId);
+      if (!p) return;
+      const newStock = Math.max(0, p.stock + delta);
+      await sb.from('pos_productos').update({ stock:newStock }).eq('id', productId);
+      setState(st => ({ products:st.products.map(p => p.id===productId ? {...p,stock:newStock} : p) }));
+    },
+
+    async deleteProduct(productId) {
+      await sb.from('pos_productos').update({ activo:false }).eq('id', productId);
+      setState(st => ({ products:st.products.filter(p => p.id!==productId) }));
+    },
+
+    async openSession(openingAmount) {
+      const s = {
+        negocio_id: state.negocioId,
+        cajero_nombre: state.user ? state.user.nombre : '—',
+        usuario_id: state.user ? state.user.id : null,
+        opening_amount: Number(openingAmount)||0,
+        status: 'abierta',
+      };
+      const { data, error } = await sb.from('pos_sesiones_caja').insert(s).select().single();
+      if (error) return {ok:false};
+      const sesNorm = { id:data.id, cajero:data.cajero_nombre, openedAt:data.opened_at, openingAmount:Number(data.opening_amount), closedAt:null, status:'abierta', counted:null, expectedByMethod:null, expectedEfectivo:0, difference:0, totalVendido:0, ticketCount:0 };
+      setState(st => ({ cashSessions:[sesNorm,...st.cashSessions], currentSessionId:data.id }));
+      return {ok:true, session:sesNorm};
+    },
+
+    async closeSession(countedByMethod) {
       const session = currentSession();
       if (!session) return {ok:false};
-      const sales = state.sales.filter(s => s.sessionId===session.id);
+      const venSes = state.sales.filter(v => v.sessionId===session.id);
       const expectedByMethod = {};
-      sales.forEach(s => s.payments.forEach(p => { expectedByMethod[p.method]=(expectedByMethod[p.method]||0)+p.amount; }));
+      venSes.forEach(v => v.payments.forEach(p => { expectedByMethod[p.method]=(expectedByMethod[p.method]||0)+p.amount; }));
       const expectedEfectivo = (expectedByMethod.efectivo||0) + session.openingAmount;
-      const countedEfectivo = countedByMethod.efectivo||0;
-      const difference = countedEfectivo - expectedEfectivo;
-      const closed = { ...session, closedAt:nowISO(), status:"cerrada", counted:countedByMethod, expectedByMethod, expectedEfectivo, difference,
-        totalVendido:sales.reduce((s,x) => s+x.total,0), ticketCount:sales.length };
-      setState(st => ({ cashSessions:st.cashSessions.map(s => s.id===closed.id?closed:s), currentSessionId:null }));
+      const difference = (countedByMethod.efectivo||0) - expectedEfectivo;
+      const totalVendido = venSes.reduce((a,v)=>a+v.total,0);
+
+      const update = {
+        status:'cerrada', closed_at:nowISO(),
+        counted:countedByMethod, expected_by_method:expectedByMethod,
+        expected_efectivo:expectedEfectivo, difference,
+        total_vendido:totalVendido, ticket_count:venSes.length,
+      };
+      await sb.from('pos_sesiones_caja').update(update).eq('id', session.id);
+
+      const closed = { ...session, closedAt:nowISO(), status:'cerrada', counted:countedByMethod, expectedByMethod, expectedEfectivo, difference, totalVendido, ticketCount:venSes.length };
+      setState(st => ({ cashSessions:st.cashSessions.map(s=>s.id===closed.id?closed:s), currentSessionId:null }));
       return {ok:true, session:closed};
     },
-    openSession(openingAmount) {
-      const s = { id:uid("s"), cajero:state.user?state.user.nombre:"—", openedAt:nowISO(),
-        openingAmount:Number(openingAmount)||0, closedAt:null, status:"abierta", counted:null, expected:null, difference:null };
-      setState(st => ({cashSessions:[...st.cashSessions,s], currentSessionId:s.id}));
-      return {ok:true, session:s};
+
+    async updateSettings(patch) {
+      await sb.from('negocios_pos').update({
+        nombre:patch.negocio, cuit:patch.cuit, direccion:patch.direccion, ticket_footer:patch.ticketFooter,
+      }).eq('id', state.negocioId);
+      setState(st => ({ settings:{...st.settings,...patch} }));
     },
-    updateSettings(patch) { setState(st => ({settings:{...st.settings,...patch}})); },
-    resetAll() { reset(); },
+
+    resetAll() { window.location.reload(); },
   };
 
   POS.findProduct = findProduct;
@@ -612,7 +722,7 @@ window.SEED_HISTORY_DAYS = 7;
   POS.cartCount = cartCount;
   POS.currentSession = currentSession;
 
-  window.POSStore = { getState, setState, subscribe, reset };
+  window.POSStore = { getState, setState, subscribe };
   window.POS = POS;
 
   window.useStore = function() {
@@ -622,66 +732,15 @@ window.SEED_HISTORY_DAYS = 7;
     return getState();
   };
 
-  window.fmt = function(n) {
-    const v = Math.round(Number(n)||0);
-    return "$ " + v.toLocaleString("es-AR");
-  };
-  window.fmtNum = function(n) { return (Number(n)||0).toLocaleString("es-AR"); };
-  window.fmtDate = function(d, opts) {
-    return new Date(d).toLocaleDateString("es-AR", opts || {day:"2-digit",month:"short",year:"numeric"});
-  };
-  window.fmtTime = function(d) {
-    return new Date(d).toLocaleTimeString("es-AR", {hour:"2-digit",minute:"2-digit"});
-  };
-})();
-</script>
+  window.fmt = function(n) { return '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR'); };
+  window.fmtNum = function(n) { return (Number(n)||0).toLocaleString('es-AR'); };
+  window.fmtDate = function(d, opts) { return new Date(d).toLocaleDateString('es-AR', opts||{day:'2-digit',month:'short',year:'numeric'}); };
+  window.fmtTime = function(d) { return new Date(d).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); };
 
-<!-- ============================================================
-     COMPONENTES BABEL/JSX
-     ============================================================ -->
-
-<!-- ICONOS -->
-<script type="text/babel">
-const Icon = (function() {
-  const R = window.React;
-  const P = {
-    cart:    "M2.5 3h2l1.2 12.5a2 2 0 0 0 2 1.8h8.6a2 2 0 0 0 2-1.7L20 7H6M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
-    box:     "M21 8 12 3 3 8m18 0-9 5m9-5v8l-9 5m0-13L3 8m9 5v8m0-8L3 8v8l9 5",
-    chart:   "M3 3v18h18M8 16V10M13 16V6M18 16v-4",
-    cash:    "M2 6h20v12H2zM2 10h20M7 14h2M12 14h3",
-    shield:  "M12 3 5 6v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V6l-7-3Z",
-    search:  "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.3-4.3",
-    scan:    "M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M6 8v8M9 8v8M11.5 8v8M14 8v8M16 8v8M18.5 8v8",
-    plus:    "M12 5v14M5 12h14",
-    minus:   "M5 12h14",
-    trash:   "M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M10 11v6M14 11v6",
-    x:       "M6 6l12 12M18 6 6 18",
-    check:   "M20 6 9 17l-5-5",
-    logout:  "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
-    user:    "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
-    alert:   "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
-    settings:"M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z",
-    receipt: "M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2Zm3 6h10M7 12h10M7 16h6",
-    package: "M16 3H8a2 2 0 0 0-2 2v14l6-3 6 3V5a2 2 0 0 0-2-2Z",
-    tag:     "M3 7v4.6a2 2 0 0 0 .6 1.4l7.8 7.8a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8L11 5.6A2 2 0 0 0 9.6 5H5a2 2 0 0 0-2 2Zm4 1h.01",
-    clock:   "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2",
-    download:"M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2",
-    edit:    "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z",
-    coins:   "M9 9a6 3 0 1 0 0-6 6 3 0 0 0 0 6Zm0 0v6c0 1.7 2.7 3 6 3M3 6v6c0 1.7 2.7 3 6 3m6-9v6m0 0c0 1.7 2.7 3 6 3v-6",
-    card:    "M2 6h20v12H2zM2 10h20M6 15h4",
-    qr:      "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v3M17 20h4M14 20v1",
-    bank:    "M3 9 12 3l9 6M4 9v10m16-10v10M4 19h16M8 12v4M12 12v4M16 12v4",
-  };
-  return function Icon({ name, size, strokeWidth, style, className }) {
-    const d = P[name] || P.box;
-    return R.createElement("svg", {
-      width:size||22, height:size||22, viewBox:"0 0 24 24", fill:"none",
-      stroke:"currentColor", strokeWidth:strokeWidth||1.8,
-      strokeLinecap:"round", strokeLinejoin:"round", style, className,
-    }, d.split(" M").map((seg,i) => R.createElement("path",{key:i,d:(i?"M":"")+seg})));
-  };
+  // Arrancar carga
+  cargarNegocio();
 })();
-window.Icon = Icon;
+// dummy para que no rompa el bloque viejo que sigue
 </script>
 
 <!-- COMPONENTES UI COMPARTIDOS -->
@@ -887,8 +946,8 @@ function VentaScreen({ pushToast }) {
     POS.addToCart(p.id);
   }
 
-  function confirmSale(payments, vuelto) {
-    const res = POS.checkout(payments);
+  async function confirmSale(payments, vuelto) {
+    const res = await POS.checkout(payments);
     if (res.ok) { setCheckout(false); setRecibo({sale:res.sale, vuelto}); }
   }
 
@@ -1346,14 +1405,14 @@ function CajaScreen({ pushToast }) {
   const esperaEfectivo=(espera.efectivo||0)+(session?session.openingAmount:0);
   const totalVendido=ventasSesion.reduce((a,v)=>a+v.total,0);
 
-  function cerrar(){
+  async function cerrar(){
     const counted={
       efectivo:parseInt(counts.efectivo||0,10)||0,
       tarjeta:parseInt(counts.tarjeta||0,10)||0,
       qr:parseInt(counts.qr||0,10)||0,
       transferencia:parseInt(counts.transferencia||0,10)||0,
     };
-    const res=POS.closeSession(counted);
+    const res=await POS.closeSession(counted);
     if(res.ok){setDone(res.session);pushToast("Caja cerrada");}
   }
 
@@ -1366,7 +1425,7 @@ function CajaScreen({ pushToast }) {
           <div className="recibo-check" style={{margin:"0 auto 16px"}}><Icon name="cash" size={28}/></div>
           <h3 style={{margin:"0 0 6px"}}>No hay una caja abierta</h3>
           <p className="muted" style={{marginTop:0}}>Abrí la caja con el monto inicial de efectivo para empezar a operar.</p>
-          <AbrirCaja onOpen={monto=>{POS.openSession(monto);pushToast("Caja abierta");}}/>
+          <AbrirCaja onOpen={function(monto){POS.openSession(monto).then(()=>pushToast("Caja abierta"));}}/>
         </div>
         {sesionesPrev.length>0 && <HistorialCajas sesiones={sesionesPrev}/>}
       </div>
@@ -1639,6 +1698,30 @@ function App() {
   const [route, setRoute] = useStateApp("venta");
   const [pushToast, toastNode] = useToasts();
   const now = useClock();
+
+  if (s.loading) return (
+    <div style={{height:"100vh",display:"grid",placeItems:"center",background:"var(--bg)"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{width:52,height:52,border:"4px solid var(--line)",borderTopColor:"var(--green-600)",borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 20px"}}></div>
+        <div style={{fontWeight:700,fontSize:16,color:"var(--ink)"}}>Cargando negocio…</div>
+        <div style={{color:"var(--muted)",fontSize:13,marginTop:6}}>{NEGOCIO_SLUG || 'Verificando acceso'}</div>
+      </div>
+      <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
+    </div>
+  );
+
+  if (s.error) return (
+    <div style={{height:"100vh",display:"grid",placeItems:"center",background:"var(--bg)"}}>
+      <div style={{textAlign:"center",maxWidth:400,padding:24}}>
+        <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
+        <div style={{fontWeight:800,fontSize:20,color:"var(--ink)",marginBottom:8}}>Negocio no disponible</div>
+        <div style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>{s.error}</div>
+        <div style={{background:"var(--surface-2)",border:"1px solid var(--line)",borderRadius:10,padding:"12px 16px",fontFamily:"var(--mono)",fontSize:12,color:"var(--muted)",textAlign:"left"}}>
+          URL esperada: <strong>pos.tudominio.com?n=nombre-del-negocio</strong>
+        </div>
+      </div>
+    </div>
+  );
 
   if (!s.user) return (<><LoginScreen onLogged={()=>setRoute("venta")}/>{toastNode}</>);
 
