@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<!-- ZXing — lector de códigos de barras por cámara -->
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js" crossorigin="anonymous"></script>
 
 <style>
 /* ============================================================
@@ -349,6 +351,19 @@ input, select, textarea { font-family: inherit; }
 @media print {
   .sidebar, .topbar, .modal-foot { display: none !important; }
 }
+
+/* ── Escáner cámara ── */
+.cam-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+.cam-wrap { position:relative; width:min(90vw,480px); border-radius:16px; overflow:hidden; background:#000; aspect-ratio:4/3; }
+.cam-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+.cam-frame { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.cam-frame::before { content:""; display:block; width:65%; aspect-ratio:3/1; border:3px solid rgba(37,163,108,.9); border-radius:8px; box-shadow:0 0 0 9999px rgba(0,0,0,.4); animation:camPulse 1.5s ease-in-out infinite; }
+@keyframes camPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.cam-hint { color:rgba(255,255,255,.8); font-size:13px; text-align:center; max-width:280px; }
+.cam-btn-close { padding:11px 28px; border-radius:10px; background:rgba(255,255,255,.15); color:#fff; font-size:14px; font-weight:700; border:1px solid rgba(255,255,255,.25); cursor:pointer; font-family:inherit; }
+.cam-btn-close:hover { background:rgba(255,255,255,.25); }
+.btn-cam { display:flex; align-items:center; gap:6px; padding:10px 14px; border-radius:10px; border:1.5px solid var(--line); background:var(--surface); color:var(--green-600); font-size:13px; font-weight:700; cursor:pointer; transition:all .12s; font-family:inherit; white-space:nowrap; }
+.btn-cam:hover { border-color:var(--green-500); background:var(--green-50); }
 </style>
 </head>
 <body>
@@ -977,7 +992,24 @@ function VentaScreen({ pushToast }) {
   const [cat, setCat] = useStateV("todos");
   const [checkout, setCheckout] = useStateV(false);
   const [recibo, setRecibo] = useStateV(null);
+  const [camAbierta, setCamAbierta] = useStateV(false);
   const searchRef = useRefV(null);
+
+  function onCodigoEscaneado(code) {
+    setCamAbierta(false);
+    if (!code) return;
+    const byCode = s.products.find(p => p.barcode === code);
+    if (byCode) {
+      if (byCode.stock <= 0) { pushToast("Sin stock: " + byCode.nombre, "err"); return; }
+      POS.addToCart(byCode.id);
+      pushToast("📷 " + byCode.nombre + " agregado");
+    } else {
+      // Poner el código en el buscador para búsqueda manual
+      setQuery(code);
+      pushToast("Código " + code + " no encontrado — buscando…", "err");
+    }
+    setTimeout(() => searchRef.current && searchRef.current.focus(), 100);
+  }
 
   const lines = POS.cartLines();
   const subtotal = POS.cartSubtotal();
@@ -1017,12 +1049,21 @@ function VentaScreen({ pushToast }) {
   return (
     <div className="pos-wrap">
       <div className="pos-left">
-        <div className="pos-search">
-          <Icon name="scan" size={22}/>
-          <input ref={searchRef} className="pos-search-input" value={query}
-            onChange={e=>setQuery(e.target.value)} onKeyDown={onSearchKey}
-            placeholder="Escaneá un código de barras o buscá por nombre…"/>
-          {query && <button className="pos-search-clear" onClick={()=>setQuery("")}><Icon name="x" size={18}/></button>}
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <div className="pos-search" style={{flex:1}}>
+            <Icon name="scan" size={22}/>
+            <input ref={searchRef} className="pos-search-input" value={query}
+              onChange={e=>setQuery(e.target.value)} onKeyDown={onSearchKey}
+              placeholder="Escaneá un código de barras o buscá por nombre…"/>
+            {query && <button className="pos-search-clear" onClick={()=>setQuery("")}><Icon name="x" size={18}/></button>}
+          </div>
+          <button className="btn-cam" onClick={()=>setCamAbierta(true)} title="Escanear con cámara">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Cámara
+          </button>
         </div>
         <div className="cat-chips scroll">
           <button className={"chip"+(cat==="todos"?" on":"")} onClick={()=>setCat("todos")}>Todos</button>
@@ -1098,9 +1139,121 @@ function VentaScreen({ pushToast }) {
       <CheckoutModal open={checkout} total={total} methods={s.paymentMethods}
         onClose={()=>setCheckout(false)} onConfirm={confirmSale}/>
       <ReciboModal data={recibo} settings={s.settings} onClose={()=>setRecibo(null)}/>
+      {camAbierta && <CamaraScanner onResult={onCodigoEscaneado} onClose={()=>setCamAbierta(false)}/>}
     </div>
   );
 }
+
+// ── Escáner de cámara con ZXing ──────────────────────────
+function CamaraScanner({ onResult, onClose }) {
+  const videoRef = useRefV(null);
+  const [error, setError] = useStateV(null);
+  const [cargando, setCargando] = useStateV(true);
+  const readerRef = useRefV(null);
+
+  useEffectV(() => {
+    let activo = true;
+
+    async function iniciar() {
+      try {
+        if (typeof ZXing === "undefined") {
+          setError("La librería de escaneo no está disponible. Verificá tu conexión.");
+          setCargando(false);
+          return;
+        }
+
+        const hints = new Map();
+        const formats = [
+          ZXing.BarcodeFormat.EAN_13,
+          ZXing.BarcodeFormat.EAN_8,
+          ZXing.BarcodeFormat.CODE_128,
+          ZXing.BarcodeFormat.CODE_39,
+          ZXing.BarcodeFormat.UPC_A,
+          ZXing.BarcodeFormat.UPC_E,
+          ZXing.BarcodeFormat.QR_CODE,
+        ];
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+        const reader = new ZXing.BrowserMultiFormatReader(hints);
+        readerRef.current = reader;
+
+        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+        if (!devices || !devices.length) {
+          setError("No se encontró cámara en este dispositivo.");
+          setCargando(false);
+          return;
+        }
+
+        // Preferir cámara trasera
+        const trasera = devices.find(d =>
+          d.label.toLowerCase().includes("back") ||
+          d.label.toLowerCase().includes("rear") ||
+          d.label.toLowerCase().includes("trasera") ||
+          d.label.toLowerCase().includes("environment")
+        ) || devices[devices.length - 1];
+
+        setCargando(false);
+
+        await reader.decodeFromVideoDevice(trasera.deviceId, videoRef.current, (result, err) => {
+          if (!activo) return;
+          if (result) {
+            const code = result.getText();
+            if (code) {
+              // Vibrar si el dispositivo lo soporta
+              if (navigator.vibrate) navigator.vibrate(80);
+              onResult(code);
+            }
+          }
+        });
+      } catch(e) {
+        if (!activo) return;
+        if (e.name === "NotAllowedError") {
+          setError("Permiso de cámara denegado. Habilitalo desde la configuración del navegador.");
+        } else if (e.name === "NotFoundError") {
+          setError("No se encontró cámara disponible.");
+        } else {
+          setError("Error al iniciar la cámara: " + e.message);
+        }
+        setCargando(false);
+      }
+    }
+
+    iniciar();
+
+    return () => {
+      activo = false;
+      if (readerRef.current) {
+        try { readerRef.current.reset(); } catch(e) {}
+      }
+    };
+  }, []);
+
+  return (
+    <div className="cam-overlay" onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div className="cam-wrap">
+        <video ref={videoRef} autoPlay playsInline muted style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+        {!error && <div className="cam-frame"></div>}
+        {cargando && !error && (
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.5)"}}>
+            <div style={{width:36,height:36,border:"4px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin .7s linear infinite"}}></div>
+          </div>
+        )}
+        {error && (
+          <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.8)",padding:24,gap:12}}>
+            <div style={{fontSize:32}}>📷</div>
+            <div style={{color:"#fff",fontSize:13,textAlign:"center",lineHeight:1.5}}>{error}</div>
+          </div>
+        )}
+      </div>
+      <div className="cam-hint">
+        Apuntá la cámara al código de barras del producto
+      </div>
+      <button className="cam-btn-close" onClick={onClose}>✕ Cerrar</button>
+    </div>
+  );
+}
+
 window.VentaScreen = VentaScreen;
 
 function CheckoutModal({ open, total, methods, onClose, onConfirm }) {
