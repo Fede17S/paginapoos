@@ -1,0 +1,3621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DistribuPanel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* ===========================================================
+   Panel de Control — Distribuidoras
+   Dark, dense, corporate-blue. IBM Plex Sans + Mono.
+   =========================================================== */
+
+:root {
+  /* Surfaces */
+  --bg:            #090c11;
+  --bg-grad-top:   #0c1119;
+  --panel:         #11161f;
+  --panel-2:       #161d28;
+  --panel-3:       #1b2433;
+  --hover:         #1d2735;
+
+  /* Lines */
+  --border:        #212c3a;
+  --border-soft:   #1a2330;
+  --border-strong: #2c3a4d;
+
+  /* Text */
+  --text:          #e7eef7;
+  --text-2:        #aab6c6;
+  --text-muted:    #7c8898;
+  --text-dim:      #586474;
+
+  /* Accent (corporate blue) */
+  --accent:        #3b87f6;
+  --accent-2:      #2f6fe0;
+  --accent-soft:   rgba(59,135,246,0.13);
+  --accent-line:   rgba(59,135,246,0.35);
+
+  /* Status */
+  --green:         #34d39c;
+  --green-soft:    rgba(52,211,156,0.13);
+  --red:           #f76d6d;
+  --red-soft:      rgba(247,109,109,0.13);
+  --amber:         #f5b13d;
+  --amber-soft:    rgba(245,177,61,0.14);
+  --violet:        #a78bfa;
+  --violet-soft:   rgba(167,139,250,0.14);
+
+  /* Geometry */
+  --r:   6px;
+  --r-lg: 10px;
+  --sidebar-w: 232px;
+  --topbar-h: 56px;
+
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { height: 100vh; }
+
+::selection { background: var(--accent-soft); }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #232f3f; border-radius: 6px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #2e3d50; }
+
+/* Numbers everywhere should feel tabular */
+.mono { font-family: var(--mono); font-feature-settings: "tnum" 1; }
+.num  { font-family: var(--mono); font-feature-settings: "tnum" 1; letter-spacing: -0.02em; }
+
+/* ===================== App shell ===================== */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  background: linear-gradient(180deg, #0c1119, #090c11);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  height: var(--topbar-h);
+  border-bottom: 1px solid var(--border-soft);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+  box-shadow: 0 2px 10px rgba(59,135,246,0.35);
+}
+.brand-name { font-weight: 600; font-size: 13.5px; letter-spacing: -0.01em; }
+.brand-sub  { font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+
+.nav { padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.nav-label {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); padding: 14px 10px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--r);
+  color: var(--text-2); cursor: pointer; font-size: 13px;
+  border: 1px solid transparent;
+  transition: background .12s, color .12s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--hover); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-soft);
+  color: #cfe0ff;
+  border-color: var(--accent-line);
+}
+.nav-item.active .nav-ico { color: var(--accent); }
+.nav-ico { width: 16px; height: 16px; flex: none; color: var(--text-muted); }
+.nav-item.active .nav-ico { color: var(--accent); }
+.nav-badge {
+  margin-left: auto; font-family: var(--mono); font-size: 10.5px;
+  background: var(--panel-3); color: var(--text-2);
+  padding: 1px 6px; border-radius: 20px; min-width: 20px; text-align: center;
+}
+.nav-item.active .nav-badge { background: rgba(59,135,246,0.25); color: #cfe0ff; }
+
+.sidebar-foot { margin-top: auto; padding: 12px; border-top: 1px solid var(--border-soft); }
+.admin-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px; border-radius: var(--r); background: var(--panel);
+  border: 1px solid var(--border-soft);
+}
+.admin-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg,#2a3850,#1a2230);
+  border: 1px solid var(--border-strong);
+  display: grid; place-items: center; font-size: 12px; font-weight: 600; color: var(--text);
+}
+.admin-meta { line-height: 1.2; min-width: 0; }
+.admin-name { font-size: 12.5px; font-weight: 500; }
+.admin-role { font-size: 10.5px; color: var(--text-dim); display:flex; align-items:center; gap:4px; }
+.dot-live { width:6px; height:6px; border-radius:50%; background: var(--green); box-shadow:0 0 0 2px var(--green-soft); }
+
+/* ---- Main column ---- */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+.topbar {
+  height: var(--topbar-h); flex: none;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(12,17,25,0.7);
+  backdrop-filter: blur(8px);
+}
+.crumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.crumbs .c-dim { color: var(--text-dim); }
+.crumbs .c-sep { color: var(--text-dim); }
+.page-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.topbar-spacer { flex: 1; }
+
+.search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 6px 10px; width: 240px;
+  transition: border-color .12s, box-shadow .12s;
+}
+.search:focus-within { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search input { background: none; border: none; outline: none; color: var(--text); font-size: 12.5px; width: 100%; font-family: var(--sans); }
+.search input::placeholder { color: var(--text-dim); }
+.search svg { color: var(--text-dim); flex: none; }
+.kbd { font-family: var(--mono); font-size: 10px; color: var(--text-dim); border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 4px; }
+
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+.content-inner { padding: 22px; max-width: 1500px; margin: 0 auto; }
+
+/* ===================== Buttons ===================== */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--sans); font-size: 12.5px; font-weight: 500;
+  padding: 7px 13px; border-radius: var(--r); cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text);
+  transition: background .12s, border-color .12s, transform .05s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--panel-3); }
+.btn:active { transform: translateY(1px); }
+.btn svg { width: 15px; height: 15px; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+.btn-primary:hover { background: var(--accent-2); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); padding: 6px 8px; }
+.btn-ghost:hover { background: var(--hover); color: var(--text); }
+.btn-sm { padding: 5px 9px; font-size: 11.5px; }
+.btn-danger { color: var(--red); border-color: transparent; background: transparent; }
+.btn-danger:hover { background: var(--red-soft); }
+
+.icon-btn {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: var(--r); border: 1px solid var(--border); background: var(--panel);
+  color: var(--text-2); cursor: pointer; transition: background .12s, color .12s;
+}
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+
+/* ===================== Panels / cards ===================== */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.panel-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 16px; border-bottom: 1px solid var(--border-soft);
+}
+.panel-title { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+.panel-sub { font-size: 11.5px; color: var(--text-dim); }
+.panel-body { padding: 16px; }
+.panel-head .spacer { flex: 1; }
+
+.grid { display: grid; gap: 14px; }
+
+/* KPI stat cards */
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.kpi {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 13px 14px; position: relative; overflow: hidden;
+}
+.kpi-top { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.kpi-ico { width: 15px; height: 15px; color: var(--text-muted); }
+.kpi-label { font-size: 11px; letter-spacing: 0.02em; text-transform: uppercase; }
+.kpi-val { font-family: var(--mono); font-size: 24px; font-weight: 500; letter-spacing: -0.03em; margin-top: 8px; }
+.kpi-foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11.5px; color: var(--text-dim); }
+.kpi-spark { position: absolute; right: 12px; top: 12px; opacity: 0.9; }
+
+.delta { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 11.5px; font-weight: 500; }
+.delta.up { color: var(--green); }
+.delta.down { color: var(--red); }
+.delta svg { width: 12px; height: 12px; }
+
+/* ===================== Badges ===================== */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.badge .bdot { width: 6px; height: 6px; border-radius: 50%; }
+.badge-green { background: var(--green-soft); color: var(--green); border-color: rgba(52,211,156,0.25); }
+.badge-green .bdot { background: var(--green); }
+.badge-red   { background: var(--red-soft);   color: var(--red);   border-color: rgba(247,109,109,0.25); }
+.badge-red .bdot { background: var(--red); }
+.badge-amber { background: var(--amber-soft); color: var(--amber); border-color: rgba(245,177,61,0.25); }
+.badge-amber .bdot { background: var(--amber); }
+.badge-blue  { background: var(--accent-soft); color: #79b0ff; border-color: var(--accent-line); }
+.badge-blue .bdot { background: var(--accent); }
+.badge-gray  { background: var(--panel-3); color: var(--text-2); border-color: var(--border-strong); }
+.badge-gray .bdot { background: var(--text-muted); }
+.badge-violet{ background: var(--violet-soft); color: var(--violet); border-color: rgba(167,139,250,0.3); }
+.badge-violet .bdot { background: var(--violet); }
+
+.plan-tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; }
+
+/* ===================== Tables ===================== */
+.table-wrap { overflow-x: auto; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tbl thead th {
+  text-align: left; font-weight: 500; font-size: 10.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-dim);
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--panel); z-index: 1; white-space: nowrap;
+}
+.tbl thead th.r, .tbl tbody td.r { text-align: right; }
+.tbl tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; white-space: nowrap; }
+.tbl tbody tr { cursor: pointer; transition: background .1s; }
+.tbl tbody tr:hover { background: var(--hover); }
+.tbl tbody tr:last-child td { border-bottom: none; }
+.th-sort { cursor: pointer; user-select: none; }
+.th-sort:hover { color: var(--text-2); }
+.th-sort .caret { opacity: 0.5; margin-left: 3px; }
+
+.co-cell { display: flex; align-items: center; gap: 10px; }
+.co-logo {
+  width: 30px; height: 30px; border-radius: 7px; flex: none;
+  display: grid; place-items: center; font-weight: 600; font-size: 12px;
+  color: #fff; letter-spacing: -0.02em;
+}
+.co-name { font-weight: 500; font-size: 12.5px; color: var(--text); }
+.co-meta { font-size: 11px; color: var(--text-dim); }
+
+.bar-mini { height: 5px; border-radius: 3px; background: var(--panel-3); overflow: hidden; width: 70px; }
+.bar-mini > span { display: block; height: 100%; border-radius: 3px; }
+
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* Filters bar */
+.filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 2px; }
+.seg button {
+  font-family: var(--sans); font-size: 11.5px; color: var(--text-muted);
+  background: none; border: none; padding: 5px 11px; border-radius: 4px; cursor: pointer;
+  transition: background .1s, color .1s;
+}
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--panel-3); color: var(--text); }
+.select {
+  font-family: var(--sans); font-size: 12px; color: var(--text);
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 6px 28px 6px 11px; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c8898' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.select:focus { outline: none; border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.count-pill { font-family: var(--mono); font-size: 11px; color: var(--text-muted); background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+
+/* ===================== Charts ===================== */
+.chart-tip {
+  position: fixed; pointer-events: none; z-index: 50;
+  background: #0b0f16; border: 1px solid var(--border-strong); border-radius: 6px;
+  padding: 7px 10px; font-size: 11.5px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transform: translate(-50%, -120%); white-space: nowrap;
+}
+.chart-tip .t-lab { color: var(--text-dim); font-size: 10.5px; }
+.chart-tip .t-val { font-family: var(--mono); font-weight: 500; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-2); }
+.legend-swatch { width: 9px; height: 9px; border-radius: 2px; }
+
+/* Donut center label */
+.donut-center { text-align: center; }
+.donut-center .dc-val { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+.donut-center .dc-lab { font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* progress / capacity bars */
+.cap { height: 7px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
+.cap > span { display: block; height: 100%; border-radius: 4px; }
+
+/* list rows (top products, activity) */
+.lrow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+.lrow:last-child { border-bottom: none; }
+.lrow .l-rank { font-family: var(--mono); font-size: 11px; color: var(--text-dim); width: 18px; }
+.lrow .l-main { flex: 1; min-width: 0; }
+.lrow .l-name { font-size: 12.5px; font-weight: 500; }
+.lrow .l-sub  { font-size: 11px; color: var(--text-dim); }
+.lrow .l-val  { font-family: var(--mono); font-size: 12.5px; text-align: right; }
+
+.alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.alert-row:last-child { border-bottom: none; }
+.alert-ico { width: 28px; height: 28px; border-radius: 7px; flex: none; display: grid; place-items: center; }
+.alert-main { flex: 1; min-width: 0; }
+.alert-title { font-size: 12.5px; }
+.alert-time { font-size: 10.5px; color: var(--text-dim); font-family: var(--mono); }
+
+/* ===================== Detail header ===================== */
+.detail-head { display: flex; align-items: flex-start; gap: 16px; }
+.detail-logo { width: 56px; height: 56px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 22px; color: #fff; flex: none; }
+.detail-meta h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.detail-meta .d-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.sep-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); display:inline-block; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 13px 14px; }
+.stat-lab { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.stat-val { font-family: var(--mono); font-size: 19px; font-weight: 500; letter-spacing: -0.02em; margin-top: 7px; }
+.stat-foot { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
+
+.dl { display: grid; grid-template-columns: auto 1fr; gap: 9px 16px; font-size: 12.5px; }
+.dl dt { color: var(--text-muted); }
+.dl dd { text-align: right; font-family: var(--mono); }
+
+/* plan picker cards */
+.plan-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.plan-card { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; cursor: pointer; transition: border-color .12s, background .12s; background: var(--panel); position: relative; }
+.plan-card:hover { border-color: var(--border-strong); }
+.plan-card.sel { border-color: var(--accent); background: var(--accent-soft); }
+.plan-card .pc-name { font-weight: 600; font-size: 14px; }
+.plan-card .pc-price { font-family: var(--mono); font-size: 22px; margin-top: 6px; }
+.plan-card .pc-price small { font-size: 11px; color: var(--text-dim); }
+.plan-card .pc-feat { font-size: 11.5px; color: var(--text-2); margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+.plan-card .pc-feat span { display: flex; gap: 7px; align-items: center; }
+.pc-check { position: absolute; top: 14px; right: 14px; color: var(--accent); opacity: 0; }
+.plan-card.sel .pc-check { opacity: 1; }
+
+/* ===================== Modal ===================== */
+.overlay {
+  position: fixed; inset: 0; background: rgba(5,8,12,0.66);
+  backdrop-filter: blur(3px); z-index: 100;
+  display: grid; place-items: center; padding: 24px;
+  animation: fade .14s ease;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--border-strong); border-radius: 12px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+  animation: pop .16s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes pop { from { transform: translateY(8px) scale(.99); opacity: .6; } to { transform: none; opacity: 1; } }
+.modal-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; background: var(--panel); z-index: 2; }
+.modal-head h3 { font-size: 15px; font-weight: 600; }
+.modal-head p { font-size: 11.5px; color: var(--text-dim); }
+.modal-body { padding: 20px; }
+.modal-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--border-soft); position: sticky; bottom: 0; background: var(--panel); }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+.field label { font-size: 11.5px; color: var(--text-2); font-weight: 500; }
+.field label .req { color: var(--accent); }
+.input, .field textarea {
+  font-family: var(--sans); font-size: 13px; color: var(--text);
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 9px 11px; outline: none; transition: border-color .12s, box-shadow .12s; width: 100%;
+}
+.input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-soft); }
+.input.err { border-color: var(--red); }
+.field .hint { font-size: 10.5px; color: var(--text-dim); }
+.field .err-msg { font-size: 10.5px; color: var(--red); }
+.field select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c8898' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+.seg-pick { display: flex; gap: 8px; }
+.seg-pick .sp {
+  flex: 1; text-align: center; padding: 9px; border-radius: var(--r);
+  border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 12.5px;
+  transition: border-color .12s, background .12s;
+}
+.seg-pick .sp:hover { border-color: var(--border-strong); }
+.seg-pick .sp.on { border-color: var(--accent); background: var(--accent-soft); color: #cfe0ff; }
+
+/* toast */
+.toast-wrap { position: fixed; bottom: 22px; right: 22px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  display: flex; align-items: center; gap: 10px; background: var(--panel-2);
+  border: 1px solid var(--border-strong); border-left: 3px solid var(--green);
+  border-radius: var(--r); padding: 11px 14px; font-size: 12.5px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn .2s ease; min-width: 240px;
+}
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.toast .t-ico { color: var(--green); flex: none; }
+
+/* misc */
+.section-gap { height: 14px; }
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.tiny { font-size: 11px; }
+.flex { display: flex; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+.right { text-align: right; }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text-dim); }
+.empty-state svg { opacity: 0.4; margin-bottom: 10px; }
+
+.fade-in { animation: fadeUp .22s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.divline { height: 1px; background: var(--border-soft); margin: 14px 0; }
+
+a.link { color: var(--accent); text-decoration: none; cursor: pointer; }
+a.link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+/* ==========================================================
+   DistribuPanel — Capa de datos (Supabase)
+   Reemplaza los datos mock por datos reales.
+   ⬇⬇⬇  AJUSTÁ ESTO  ⬇⬇⬇
+   ========================================================== */
+window.SUPA = {
+  /* 1) Credenciales de tu proyecto (Settings → API en Supabase) */
+  url:     'https://vhoswhyixqtomgqudigj.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3N3aHlpeHF0b21ncXVkaWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTI4ODIsImV4cCI6MjA5NTM4ODg4Mn0.gjUaVJ1RvF3KrjfXVyh8wYIso4QW6RtIfFRbkd0PyA8',
+
+  /* ─── MERCADO PAGO ─────────────────────────────────────────────────
+     Creá un "Link de pago" por plan desde tu cuenta de MP:
+     app.mercadopago.com.ar → Cobrar → Link de pago
+     Pegá el link de cada plan acá abajo. Si no tenés link aún, dejá ''.
+     El monto lo fijás cuando generás el link en MP.
+  ──────────────────────────────────────────────────────────────────── */
+  mercadopago: {
+    base:     'https://mpago.li/2WM2Dfw',
+    estandar: 'https://mpago.li/1TreJ6d',
+    pro:      'https://mpago.li/2LDgyE2',
+  },
+
+  /* 2) Tu tabla de empresas (YA EXISTE). Mapeo app -> tus columnas reales. */
+  distribuidoras: {
+    table: 'empresas',
+    cols: {
+      id: 'id',            // uuid
+      name: 'nombre',
+      plan: 'plan',
+      status: 'estado',
+      logoColor: 'color',  // hex, ej '#1a1a17'
+      renewal: 'vence',    // date
+      codigo: 'codigo',    // unique not null -> se autogenera al crear
+      // columnas extra del panel (se agregan con el ALTER TABLE):
+      city: 'ciudad',
+      contact: 'contacto',
+      taxId: 'tax_id',
+      sucursales: 'sucursales',
+      users: 'usuarios',
+      ticket: 'ticket',
+      logo: 'logo',
+      since: null,         // no hay columna; se deriva de created_at
+    },
+  },
+
+  /* 3) Tus PEDIDOS/VENTAS están en la tabla "ventas". */
+  pedidos: {
+    table: 'ventas',
+    distribuidoraId: 'empresa_id',   // -> empresas.id
+    total:  'total',
+    fecha:  'fecha',
+    items:  'items',                 // columna jsonb con los renglones de la venta
+    // claves posibles dentro de cada item del jsonb (se prueban en orden):
+    itemNombre:   ['n','nombre','nom','producto','name','prod','title','descripcion','desc','detalle','item','articulo'],
+    itemCantidad: ['c','cantidad','cant','qty','unidades','units','q','un','bultos','cajas'],
+    itemSubtotal: ['sub','subtotal','importe','monto','total','linea','importe_total','precio_total'],
+    itemPrecio:   ['p','precio','prec','precio_unit','precioUnit','price','pu','valor','unit_price'],
+  },
+
+  /* 4) Cobranza: saldos pendientes desde cuentas corrientes (opcional, cobranza:null para apagar). */
+  cobranza: {
+    table: 'cuentas_corrientes',
+    distribuidoraId: 'empresa_id',
+    saldo: 'saldo',
+    fecha: 'updated_at',
+  },
+};
+/* ⬆⬆⬆  FIN DE LA CONFIG  ⬆⬆⬆ */
+
+
+(function () {
+  const CFG = window.SUPA;
+  const ABBR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  const PLANS = {
+    base:     { id: 'base',     name: 'Base',     price: 0,  color: '#7c8898',
+      feats: [
+        'Crear pedidos (vendedor)',
+        'Remito PDF + WhatsApp',
+        'Backup de pedidos básico',
+        'Hasta 100 productos',
+        '1 lista de precios',
+        'Hasta 50 clientes',
+        'Hasta 3 usuarios',
+        'Soporte por email',
+      ] },
+    estandar: { id: 'estandar', name: 'Estándar', price: 0, color: '#3b87f6',
+      feats: [
+        'Todo lo de Base',
+        'Factura A con IVA 21%',
+        'Fechas de entrega configurables',
+        'Productos pendientes por pedido',
+        'Comprobantes de pago (foto)',
+        'Zonas de venta + GPS',
+        'Importar / exportar Excel',
+        'Resumen mensual y Mis Vendedores',
+        'Hoja de ruta + repartidores',
+        'Mapa de entregas GPS',
+        'Hasta 500 productos · 3 listas',
+        'Clientes ilimitados · 8 usuarios',
+        'Soporte prioritario',
+      ] },
+    pro:      { id: 'pro',      name: 'Pro',      price: 0, color: '#a78bfa',
+      feats: [
+        'Todo lo de Estándar',
+        'Alertas de cobro pendiente',
+        'Tabs por día de entrega',
+        'Pedidos al proveedor',
+        'Control de stock completo',
+        'Multi-empresa ilimitada',
+        'Productos y usuarios ilimitados',
+        'Listas de precios ilimitadas',
+        'Sync precios externos (Leonidas)',
+        'Soporte dedicado + onboarding',
+      ] },
+  };
+  const LOGO_COLORS = [
+    'linear-gradient(135deg,#3b87f6,#2f6fe0)','linear-gradient(135deg,#34d39c,#159e74)',
+    'linear-gradient(135deg,#a78bfa,#7c5cf0)','linear-gradient(135deg,#f5b13d,#e08a1e)',
+    'linear-gradient(135deg,#f76d6d,#d84444)','linear-gradient(135deg,#22b8cf,#0d97ad)',
+    'linear-gradient(135deg,#ec6ec0,#c93f9e)','linear-gradient(135deg,#5b7cfa,#3a55d8)',
+  ];
+  const STATUS_META = {
+    activa:  { label: 'Activa',   cls: 'badge-green' },
+    prueba:  { label: 'Prueba',   cls: 'badge-blue' },
+    vencida: { label: 'Vencida',  cls: 'badge-amber' },
+    morosa:  { label: 'Morosa',   cls: 'badge-red' },
+  };
+  const PLAN_BADGE = { base: 'badge-gray', estandar: 'badge-blue', pro: 'badge-violet' };
+  const PRODUCTS = []; // ya no se usa para generar; se calcula desde pedidos reales
+
+  function initials(name) {
+    const parts = (name || '').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ ]/g, '').split(' ').filter(Boolean);
+    if (!parts.length) return 'NN';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  // últimos 12 meses terminando en el mes actual -> etiquetas + claves
+  const now = new Date();
+  const curKey = now.getFullYear() * 12 + now.getMonth();
+  const MONTHS = [];
+  for (let i = 0; i < 12; i++) MONTHS.push(ABBR[(((curKey - 11 + i) % 12) + 12) % 12]);
+
+  // cargar precios guardados desde localStorage
+  (function () {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pcd_plan_prices_v2') || '{}');
+      Object.keys(saved).forEach((k) => { if (PLANS[k]) PLANS[k].price = +saved[k] || PLANS[k].price; });
+    } catch (e) {}
+  })();
+
+  function savePlanPrice(planKey, price) {
+    if (!PLANS[planKey]) return;
+    PLANS[planKey].price = +price || 0;
+    try {
+      const saved = JSON.parse(localStorage.getItem('pcd_plan_prices_v2') || '{}');
+      saved[planKey] = price;
+      localStorage.setItem('pcd_plan_prices_v2', JSON.stringify(saved));
+    } catch (e) {}
+  }
+
+  function plansSafe(p) { return PLANS[p] ? p : 'estandar'; }
+  function statusSafe(s) { return STATUS_META[s] ? s : 'activa'; }
+
+  let _client = null;
+  function client() {
+    if (_client) return _client;
+    if (!window.supabase || !window.supabase.createClient) throw new Error('No cargó la librería de Supabase.');
+    _client = window.supabase.createClient(CFG.url, CFG.anonKey);
+    return _client;
+  }
+  function configured() {
+    return CFG.url && CFG.anonKey && !/TU-PROYECTO|TU_ANON_KEY/.test(CFG.url + CFG.anonKey);
+  }
+
+  function daysUntilVence(isoDate) {
+    if (!isoDate) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const exp = new Date(isoDate + 'T00:00:00');
+    return Math.round((exp - today) / DAY);
+  }
+
+  function pick(obj, keys) {
+    if (!obj) return undefined;
+    for (const k of (keys || [])) { const v = obj[k]; if (v != null && v !== '') return v; }
+    return undefined;
+  }
+  function fmtVence(v) {
+    if (!v) return null;
+    const dt = new Date(v);
+    if (isNaN(dt)) return String(v);
+    return 'Vence ' + dt.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function genCodigo(name) {
+    const slug = (name || 'emp').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20) || 'emp';
+    return slug + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  // fila DB -> objeto base de la app (sin analítica)
+  function rowToBase(row, i) {
+    const c = CFG.distribuidoras.cols;
+    const name = row[c.name] || 'Sin nombre';
+    return {
+      id: String(row[c.id]),
+      name,
+      city: row[c.city] || '',
+      contact: row[c.contact] || '',
+      taxId: row[c.taxId] || '',
+      plan: plansSafe(row[c.plan]),
+      status: statusSafe(row[c.status]),
+      sucursales: +row[c.sucursales] || 1,
+      users: +row[c.users] || 1,
+      ticket: +row[c.ticket] || 50,
+      since: row[c.since] ? String(row[c.since]) : (row.created_at ? String(new Date(row.created_at).getFullYear()) : '—'),
+      logoColor: row[c.logoColor] || LOGO_COLORS[i % LOGO_COLORS.length],
+      logo: row[c.logo] || '',
+      renewal: fmtVence(c.renewal ? row[c.renewal] : null),
+      renewalISO: (c.renewal && row[c.renewal]) ? String(row[c.renewal]).slice(0,10) : null,
+      initials: initials(name),
+      codigo: row[c.codigo] || '',
+    };
+  }
+
+  // objeto de formulario -> fila DB (para insert/update)
+  function formToRow(f) {
+    const c = CFG.distribuidoras.cols, r = {};
+    const set = (col, val) => { if (col && val != null) r[col] = val; };
+    set(c.name,       f.name);
+    set(c.city,       f.city);
+    set(c.contact,    f.contact);
+    set(c.taxId,      f.taxId);
+    set(c.plan,       f.plan);
+    set(c.status,     f.status);
+    set(c.sucursales, f.sucursales);
+    set(c.users,      f.users);
+    set(c.ticket,     f.ticket);
+    set(c.logo,       f.logo);
+    set(c.since,      f.since);
+    set(c.codigo,     f.codigo);
+    return r;
+  }
+
+  const DAY = 86400000;
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+  // calcula toda la analítica de UNA distribuidora a partir de sus pedidos/items
+  function enrich(base, peds, ccRows, users) {
+    const P = CFG.pedidos;
+    const monthly = Array(12).fill(0);
+    const monthlyCount = Array(12).fill(0);
+    const daily = Array(30).fill(0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const agg = {};
+
+    for (const p of peds) {
+      const total = +p[P.total] || 0;
+      const d = new Date(p[P.fecha]);
+      if (isNaN(d)) continue;
+      const key = d.getFullYear() * 12 + d.getMonth();
+      const idx = key - (curKey - 11);
+      if (idx >= 0 && idx < 12) { monthly[idx] += total; monthlyCount[idx] += 1; }
+      const dayOff = Math.floor((startOfToday - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / DAY);
+      const di = 29 - dayOff;
+      if (di >= 0 && di < 30) daily[di] += total;
+
+      // productos del mes actual desde items jsonb
+      if (P.items && d >= monthStart) {
+        let its = p[P.items];
+        if (typeof its === 'string') { try { its = JSON.parse(its); } catch (e) { its = []; } }
+        if (Array.isArray(its)) {
+          for (const it of its) {
+            const name = pick(it, P.itemNombre) || '—';
+            const cant = +pick(it, P.itemCantidad) || 0;
+            let sub = pick(it, P.itemSubtotal);
+            if (sub == null) sub = (+pick(it, P.itemPrecio) || 0) * cant;
+            sub = +sub || 0;
+            if (!agg[name]) agg[name] = { name, revenue: 0, units: 0 };
+            agg[name].revenue += sub; agg[name].units += cant;
+          }
+        }
+      }
+    }
+
+    const revenueYear = monthly.reduce((a, b) => a + b, 0);
+    const thisMonth = monthly[11], prevMonth = monthly[10];
+    const growth = prevMonth ? +(((thisMonth - prevMonth) / prevMonth) * 100).toFixed(1) : 0;
+    const orders = monthlyCount[11], ordersPrev = monthlyCount[10];
+    const ticket = orders ? Math.round(thisMonth / orders) : (base.ticket || 50);
+    const topProducts = Object.values(agg).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
+    // cobranza: saldos pendientes de cuentas corrientes
+    let pending = 0, oldest = null;
+    const CC = CFG.cobranza;
+    for (const r of (ccRows || [])) {
+      const s = +r[CC.saldo] || 0;
+      if (s > 0) {
+        pending += s;
+        const f = new Date(r[CC.fecha]);
+        if (!isNaN(f) && (!oldest || f < oldest)) oldest = f;
+      }
+    }
+    const overdueDays = oldest ? Math.max(0, Math.floor((startOfToday - oldest.getTime()) / DAY)) : 0;
+
+    const renewal = base.renewal || (
+      base.status === 'vencida' ? 'Suscripción vencida'
+      : base.status === 'prueba' ? 'En periodo de prueba'
+      : base.status === 'morosa' ? 'Pago pendiente' : 'Al día'
+    );
+
+    const equipo = (users || []).filter((u) => u.role !== 'cliente');
+    const clientCount = (users || []).filter((u) => u.role === 'cliente').length;
+
+    return Object.assign({}, base, {
+      monthly, daily, revenueYear, thisMonth, prevMonth, growth,
+      orders, ordersPrev, ticket, pending, overdueDays, usersTrend: 0,
+      topProducts, renewal, equipo, clientCount,
+    });
+  }
+
+  async function fetchAll() {
+    if (!configured()) {
+      throw new Error('Configurá window.SUPA.url y window.SUPA.anonKey al inicio del archivo.');
+    }
+    const sb = client();
+    const Dc = CFG.distribuidoras, P = CFG.pedidos, CC = CFG.cobranza;
+
+    // 1) empresas
+    const { data: rows, error: e1 } = await sb.from(Dc.table).select('*');
+    if (e1) throw new Error('Tabla "' + Dc.table + '": ' + e1.message);
+    const bases = (rows || []).map(rowToBase).sort((a, b) => a.name.localeCompare(b.name));
+
+    // 2) ventas (ventana ~13 meses) — NO bloqueante
+    const fromISO = new Date(now.getFullYear(), now.getMonth() - 12, 1).toISOString();
+    const pedCols = [P.distribuidoraId, P.total, P.fecha].concat(P.items ? [P.items] : []).join(',');
+    let peds = [];
+    window.PCD._pedidosWarn = null;
+    try {
+      const { data, error } = await sb.from(P.table).select(pedCols).gte(P.fecha, fromISO);
+      if (error) { console.warn('Ventas no disponibles:', error.message); window.PCD._pedidosWarn = error.message; }
+      else peds = data || [];
+    } catch (e) { console.warn('Ventas no disponibles:', e.message); window.PCD._pedidosWarn = String(e.message); }
+    window.PCD._rawVentas = peds;
+    const pedsByDist = {};
+    for (const p of peds) {
+      const k = String(p[P.distribuidoraId]);
+      (pedsByDist[k] = pedsByDist[k] || []).push(p);
+    }
+
+    // 3) cuentas corrientes (cobranza) — NO bloqueante
+    const ccByDist = {};
+    if (CC) {
+      try {
+        const { data, error } = await sb.from(CC.table).select([CC.distribuidoraId, CC.saldo, CC.fecha].join(','));
+        if (!error) for (const r of (data || [])) {
+          const k = String(r[CC.distribuidoraId]);
+          (ccByDist[k] = ccByDist[k] || []).push(r);
+        }
+      } catch (e) { console.warn('Cuentas corrientes no disponibles:', e.message); }
+    }
+
+    // bloqueo automático de empresas con gracia vencida
+    if (rows) await autoBlockOverdue(rows);
+    // usuarios por empresa (non-fatal)
+    const usersByEmp = {};
+    try {
+      const { data: usersAll, error: eu } = await sb.from('usuarios')
+        .select('empresa_id,id,uid,pass,name,role,lista,zona,catalogo,telefono,recepciona,nota');
+      if (!eu) for (const u of (usersAll || [])) {
+        const k = String(u.empresa_id);
+        (usersByEmp[k] = usersByEmp[k] || []).push(u);
+      }
+    } catch (e) { console.warn('Usuarios no disponibles:', e.message); }
+
+    return bases.map((b) => enrich(b, pedsByDist[b.id] || [], ccByDist[b.id] || [], usersByEmp[b.id] || []));
+  }
+
+  async function insertCompany(f) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const row = formToRow(f);
+    if (Dc.cols.codigo && !row[Dc.cols.codigo]) row[Dc.cols.codigo] = genCodigo(f.name);
+    const { error } = await sb.from(Dc.table).insert(row);
+    if (error) throw new Error(error.message);
+  }
+  async function updateCompany(f) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const { error } = await sb.from(Dc.table).update(formToRow(f)).eq(Dc.cols.id, f.id);
+    if (error) throw new Error(error.message);
+  }
+  async function updatePlan(id, plan) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const { error } = await sb.from(Dc.table).update({ [Dc.cols.plan]: plan }).eq(Dc.cols.id, id);
+    if (error) throw new Error(error.message);
+  }
+  async function deleteCompany(id) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const { error } = await sb.from(Dc.table).delete().eq(Dc.cols.id, id);
+    if (error) throw new Error(error.message);
+  }
+  async function insertUsuario(data) {
+    const sb = client();
+    const { error } = await sb.from('usuarios').insert(data);
+    if (error) throw new Error(error.message);
+  }
+  async function updateUsuario(id, data) {
+    const sb = client();
+    const { error } = await sb.from('usuarios').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+  async function deleteUsuario(id) {
+    const sb = client();
+    const { error } = await sb.from('usuarios').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  async function setVence(id, fecha) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const { error } = await sb.from(Dc.table).update({ [Dc.cols.renewal]: fecha || null }).eq(Dc.cols.id, id);
+    if (error) throw new Error(error.message);
+  }
+
+  async function confirmPayment(id, currentVenceISO) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    // extiende 30 días desde la fecha de cobro vigente (o desde hoy si no tiene)
+    const base = currentVenceISO ? new Date(currentVenceISO + 'T00:00:00') : new Date();
+    const next = new Date(Math.max(base.getTime(), Date.now())); // si ya venció, partir de hoy
+    next.setDate(next.getDate() + 30);
+    const nextISO = next.toISOString().slice(0, 10);
+    const { error: e1 } = await sb.from(Dc.table).update({ [Dc.cols.renewal]: nextISO, [Dc.cols.status]: 'activa' }).eq(Dc.cols.id, id);
+    if (e1) throw new Error(e1.message);
+    // reactivar todos los usuarios de la empresa
+    const { error: e2 } = await sb.from('usuarios').update({ catalogo: true }).eq('empresa_id', id);
+    if (e2) console.warn('Reactivar usuarios:', e2.message);
+  }
+
+  // bloqueo automático: si vence + 5 días < hoy → vencida + usuarios bloqueados
+  async function autoBlockOverdue(rows) {
+    const sb = client(), Dc = CFG.distribuidoras;
+    const GRACE = 5;
+    const toBlock = rows.filter((r) => {
+      const days = daysUntilVence(r[Dc.cols.renewal] ? String(r[Dc.cols.renewal]).slice(0, 10) : null);
+      return days !== null && days < -GRACE && r[Dc.cols.status] !== 'vencida';
+    });
+    for (const r of toBlock) {
+      await sb.from(Dc.table).update({ [Dc.cols.status]: 'vencida' }).eq(Dc.cols.id, r[Dc.cols.id]).catch(() => {});
+      await sb.from('usuarios').update({ catalogo: false }).eq('empresa_id', r[Dc.cols.id]).catch(() => {});
+      r[Dc.cols.status] = 'vencida'; // reflejo local inmediato
+    }
+    return toBlock.length;
+  }
+
+  // salda (pone en 0) los saldos de cuentas corrientes de una empresa
+  async function markPaid(id) {
+    const CC = CFG.cobranza;
+    if (!CC) throw new Error('Cobranza no configurada.');
+    const sb = client();
+    const { error } = await sb.from(CC.table).update({ [CC.saldo]: 0 }).eq(CC.distribuidoraId, id).gt(CC.saldo, 0);
+    if (error) throw new Error(error.message);
+  }
+
+  function subscribeRealtime(onChange, onStatus) {
+    const sb = client();
+    const ch = sb
+      .channel('distrimax-panel-' + Date.now())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'empresas' }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ventas' }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cuentas_corrientes' }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, onChange)
+      .subscribe((status) => { if (onStatus) onStatus(status); });
+    return () => { try { sb.removeChannel(ch); } catch (e) {} };
+  }
+
+
+  // ─── NEGOCIOS POS ─────────────────────────────────────
+  async function fetchNegocios() {
+    const sb = client();
+    const { data, error } = await sb.from('negocios_pos')
+      .select('*, pos_cajeros(*)')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(n => ({
+      id: n.id, nombre: n.nombre, slug: n.slug,
+      cuit: n.cuit || '', direccion: n.direccion || '',
+      ticket_footer: n.ticket_footer || '',
+      activo: n.activo !== false,
+      vence: n.vence || null, estado: n.estado || 'activo',
+      contacto: n.contacto || '', telefono: n.telefono || '',
+      cajeros: n.pos_cajeros || [],
+      created_at: n.created_at,
+      pending: Number(n.saldo_pendiente || 0),
+    }));
+  }
+  async function insertNegocio(data) {
+    const sb = client();
+    const { error } = await sb.from('negocios_pos').insert(data);
+    if (error) throw new Error(error.message);
+  }
+  async function updateNegocio(id, data) {
+    const sb = client();
+    const { error } = await sb.from('negocios_pos').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+  async function deleteNegocio(id) {
+    const sb = client();
+    const { error } = await sb.from('negocios_pos').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+  async function fetchCajeros(negocioId) {
+    const sb = client();
+    const { data } = await sb.from('pos_cajeros').select('*')
+      .eq('negocio_id', negocioId).order('created_at');
+    return data || [];
+  }
+  async function insertCajero(negocioId, data) {
+    const sb = client();
+    const { error } = await sb.from('pos_cajeros')
+      .insert({ ...data, negocio_id: negocioId });
+    if (error) throw new Error(error.message);
+  }
+  async function updateCajero(id, data) {
+    const sb = client();
+    const { error } = await sb.from('pos_cajeros').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+  async function deleteCajero(id) {
+    const sb = client();
+    const { error } = await sb.from('pos_cajeros').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  window.PCD = {
+    PLANS, MONTHS, STATUS_META, PLAN_BADGE, initials, LOGO_COLORS, PRODUCTS,
+    configured, fetchAll, insertCompany, updateCompany, updatePlan, deleteCompany, markPaid, subscribeRealtime, setVence, confirmPayment, daysUntilVence, savePlanPrice, PLANS, insertUsuario, updateUsuario, deleteUsuario,
+    fetchNegocios, insertNegocio, updateNegocio, deleteNegocio,
+    fetchCajeros, insertCajero, updateCajero, deleteCajero,
+  };
+  window.PCD._pedsConfig = CFG.pedidos;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+/* Compartidos */
+/* ==========================================================
+   Componentes compartidos
+   ========================================================== */
+const { useState, useEffect, useRef, useMemo } = React;
+
+/* ---------- formatters ---------- */
+const fmtMoney = (n) => '$' + Math.round(n).toLocaleString('es-MX');
+const fmtCompact = (n) => {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'k';
+  return '$' + Math.round(n);
+};
+const fmtNum = (n) => Math.round(n).toLocaleString('es-MX');
+const fmtPct = (n) => (n > 0 ? '+' : '') + n.toFixed(1) + '%';
+
+/* ---------- icons (lucide-style) ---------- */
+const ICONS = {
+  dashboard: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
+  building: 'M3 21h18M9 8h1m-1 4h1m-1 4h1m4-8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16',
+  card: 'M2 7h20M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7zm4 8h4',
+  report: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 0v6h6M9 13l2 2 4-4',
+  search: 'M21 21l-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z',
+  plus: 'M12 5v14M5 12h14',
+  arrowUp: 'M7 17L17 7M17 7H9M17 7v8',
+  arrowDown: 'M17 7L7 17M7 17h8M7 17V9',
+  chevR: 'M9 18l6-6-6-6',
+  trendUp: 'M3 17l6-6 4 4 8-8M21 7h-6m6 0v6',
+  edit: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  dollar: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  users: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  cart: 'M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6',
+  alert: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01',
+  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+  download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+  x: 'M18 6L6 18M6 6l12 12',
+  check: 'M20 6L9 17l-5-5',
+  filter: 'M22 3H2l8 9.46V19l4 2v-8.54L22 3z',
+  trash: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  box: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96L12 12l8.73-5.04M12 22.08V12',
+  bolt: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
+  pin: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  mail: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',
+  calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+  refresh: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
+  bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  currency: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  send: 'M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z',
+  chart: 'M18 20V10M12 20V4M6 20v-6',
+};
+function Icon({ name, size = 16, style, className, strokeWidth = 2 }) {
+  const d = ICONS[name] || '';
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      {d.split('M').filter(Boolean).map((seg, i) => <path key={i} d={'M' + seg} />)}
+    </svg>
+  );
+}
+
+/* ---------- delta chip ---------- */
+function Delta({ value, suffix = '%', size }) {
+  if (!isFinite(value)) value = 0;
+  const up = value >= 0;
+  return (
+    <span className={'delta ' + (up ? 'up' : 'down')} style={size ? { fontSize: size } : null}>
+      <Icon name={up ? 'arrowUp' : 'arrowDown'} size={12} />
+      {(up ? '+' : '') + value.toFixed(1) + suffix}
+    </span>
+  );
+}
+
+/* ---------- badges ---------- */
+function StatusBadge({ status }) {
+  const m = window.PCD.STATUS_META[status] || { label: status, cls: 'badge-gray' };
+  return <span className={'badge ' + m.cls}><span className="bdot"></span>{m.label}</span>;
+}
+function PlanBadge({ plan }) {
+  const p = window.PCD.PLANS[plan];
+  const cls = window.PCD.PLAN_BADGE[plan] || 'badge-gray';
+  return <span className={'badge ' + cls + ' plan-tag'}>{p ? p.name : plan}</span>;
+}
+
+/* ---------- tooltip helper ---------- */
+function useTip() {
+  const [tip, setTip] = useState(null);
+  const node = tip ? (
+    <div className="chart-tip" style={{ left: tip.x, top: tip.y }}>
+      <div className="t-lab">{tip.label}</div>
+      <div className="t-val">{tip.value}</div>
+    </div>
+  ) : null;
+  return [tip, setTip, node];
+}
+
+/* ---------- Sparkline ---------- */
+function Sparkline({ data, w = 80, h = 28, color = 'var(--accent)', fill = false }) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const rng = max - min || 1;
+  const pts = data.map((v, i) => [(i / (data.length - 1)) * w, h - ((v - min) / rng) * (h - 4) - 2]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = line + ` L${w},${h} L0,${h} Z`;
+  const id = 'sg' + Math.round(min + max + data.length);
+  return (
+    <svg width={w} height={h} style={{ display: 'block' }}>
+      {fill && <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+        <stop offset="100%" stopColor={color} stopOpacity="0" />
+      </linearGradient></defs>}
+      {fill && <path d={area} fill={`url(#${id})`} />}
+      <path d={line} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ---------- Bar chart (monthly) ---------- */
+function BarChart({ data, labels, height = 200, color = 'var(--accent)', fmt = fmtCompact }) {
+  const [tip, setTip, tipNode] = useTip();
+  const max = Math.max(...data) * 1.12;
+  const W = 100; // viewbox units (percent-like via svg)
+  const ref = useRef(null);
+  const gap = 0.32;
+  const bw = (100 / data.length) * (1 - gap);
+  const gridLines = 4;
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <svg width="100%" height={height} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+        {Array.from({ length: gridLines + 1 }).map((_, i) => {
+          const y = (i / gridLines) * (height - 22);
+          return <line key={i} x1="0" y1={y} x2="100" y2={y} stroke="var(--border-soft)" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />;
+        })}
+        {data.map((v, i) => {
+          const x = (i / data.length) * 100 + (100 / data.length) * gap / 2;
+          const bh = (v / max) * (height - 22);
+          const y = (height - 22) - bh;
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={bw} height={bh} rx="1" fill={color} opacity={i === data.length - 1 ? 1 : 0.55}
+                vectorEffect="non-scaling-stroke"
+                onMouseMove={(e) => setTip({ x: e.clientX, y: e.clientY, label: labels[i], value: fmtMoney(v) })}
+                onMouseLeave={() => setTip(null)} style={{ cursor: 'pointer', transition: 'opacity .12s' }} />
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ display: 'flex', marginTop: 4 }}>
+        {labels.map((l, i) => <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 9.5, color: 'var(--text-dim)', fontFamily: 'var(--mono)' }}>{l}</div>)}
+      </div>
+      {tipNode}
+    </div>
+  );
+}
+
+/* ---------- Area line chart ---------- */
+function AreaChart({ data, labels, height = 220, color = 'var(--accent)', fmt = fmtMoney }) {
+  const [tip, setTip, tipNode] = useTip();
+  const [hover, setHover] = useState(null);
+  const W = 600, H = height, pad = 8;
+  const max = Math.max(...data) * 1.1, min = Math.min(...data) * 0.9;
+  const rng = max - min || 1;
+  const xOf = (i) => pad + (i / (data.length - 1)) * (W - pad * 2);
+  const yOf = (v) => (H - 28) - ((v - min) / rng) * (H - 28 - pad);
+  const pts = data.map((v, i) => [xOf(i), yOf(v)]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = line + ` L${xOf(data.length - 1)},${H - 28} L${pad},${H - 28} Z`;
+  return (
+    <div style={{ position: 'relative' }}>
+      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
+        onMouseLeave={() => { setTip(null); setHover(null); }}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const rx = ((e.clientX - rect.left) / rect.width) * W;
+          let idx = Math.round(((rx - pad) / (W - pad * 2)) * (data.length - 1));
+          idx = Math.max(0, Math.min(data.length - 1, idx));
+          setHover(idx);
+          setTip({ x: e.clientX, y: e.clientY, label: labels[idx], value: fmt(data[idx]) });
+        }}>
+        <defs><linearGradient id="aclg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient></defs>
+        {[0, 0.25, 0.5, 0.75, 1].map((t, i) => (
+          <line key={i} x1={pad} y1={(H - 28) * t} x2={W - pad} y2={(H - 28) * t} stroke="var(--border-soft)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        ))}
+        <path d={area} fill="url(#aclg)" />
+        <path d={line} fill="none" stroke={color} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+        {hover != null && <>
+          <line x1={pts[hover][0]} y1={0} x2={pts[hover][0]} y2={H - 28} stroke="var(--border-strong)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          <circle cx={pts[hover][0]} cy={pts[hover][1]} r="3.5" fill={color} stroke="var(--panel)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        </>}
+      </svg>
+      <div style={{ display: 'flex', marginTop: 2 }}>
+        {labels.map((l, i) => <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 9.5, color: 'var(--text-dim)', fontFamily: 'var(--mono)' }}>{l}</div>)}
+      </div>
+      {tipNode}
+    </div>
+  );
+}
+
+/* ---------- Donut ---------- */
+function Donut({ segments, size = 150, thickness = 22, centerVal, centerLab }) {
+  const [tip, setTip, tipNode] = useTip();
+  const total = segments.reduce((a, s) => a + s.value, 0) || 1;
+  const r = (size - thickness) / 2;
+  const c = size / 2;
+  const circ = 2 * Math.PI * r;
+  let acc = 0;
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={c} cy={c} r={r} fill="none" stroke="var(--panel-3)" strokeWidth={thickness} />
+        {segments.map((s, i) => {
+          const frac = s.value / total;
+          const dash = frac * circ;
+          const el = (
+            <circle key={i} cx={c} cy={c} r={r} fill="none" stroke={s.color} strokeWidth={thickness}
+              strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={-acc * circ}
+              style={{ cursor: 'pointer', transition: 'stroke-width .12s' }}
+              onMouseMove={(e) => setTip({ x: e.clientX, y: e.clientY, label: s.label, value: s.value + ' (' + Math.round(frac * 100) + '%)' })}
+              onMouseLeave={() => setTip(null)} />
+          );
+          acc += frac;
+          return el;
+        })}
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
+        <div className="donut-center">
+          <div className="dc-val">{centerVal}</div>
+          <div className="dc-lab">{centerLab}</div>
+        </div>
+      </div>
+      {tipNode}
+    </div>
+  );
+}
+
+/* ---------- Logo chip ---------- */
+function Logo({ co, size = 30, radius = 7, fontSize }) {
+  if (co.logo && co.logo.length > 4) {
+    return (
+      <div className="co-logo" style={{ width: size, height: size, borderRadius: radius, overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+        <img src={co.logo} alt={co.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
+    );
+  }
+  return (
+    <div className="co-logo" style={{ width: size, height: size, borderRadius: radius, background: co.logoColor, fontSize: fontSize || (size > 40 ? 20 : 12), flexShrink: 0 }}>
+      {co.initials}
+    </div>
+  );
+}
+
+/* expose */
+Object.assign(window, {
+  Icon, Delta, StatusBadge, PlanBadge, Sparkline, BarChart, AreaChart, Donut, Logo,
+  fmtMoney, fmtCompact, fmtNum, fmtPct, useTip,
+});
+
+
+/* Vistas */
+/* ==========================================================
+   Vistas: Dashboard · Empresas · Detalle
+   ========================================================== */
+
+/* ---------- aggregate helpers ---------- */
+function aggregate(companies) {
+  const PLANS = window.PCD.PLANS;
+  const monthlyAgg = Array(12).fill(0);
+  let mrr = 0, thisMonth = 0, prevMonth = 0, orders = 0, ordersPrev = 0, pending = 0, usersTotal = 0;
+  const planCount = { base: 0, estandar: 0, pro: 0 };
+  companies.forEach((c) => {
+    c.monthly.forEach((v, i) => (monthlyAgg[i] += v));
+    thisMonth += c.thisMonth; prevMonth += c.prevMonth;
+    orders += c.orders; ordersPrev += c.ordersPrev;
+    pending += c.pending; usersTotal += c.users;
+    if(planCount[c.plan]!==undefined) planCount[c.plan]++;;
+    if (c.status === 'activa' || c.status === 'prueba') mrr += PLANS[c.plan].price;
+  });
+  const active = companies.filter((c) => c.status === 'activa' || c.status === 'prueba').length;
+  const growth = prevMonth ? ((thisMonth - prevMonth) / prevMonth) * 100 : 0;
+  const ordersGrowth = ordersPrev ? ((orders - ordersPrev) / ordersPrev) * 100 : 0;
+  return { monthlyAgg, mrr, thisMonth, prevMonth, orders, ordersGrowth, growth, pending, usersTotal, planCount, active };
+}
+
+/* ============================ DASHBOARD ============================ */
+function Dashboard({ companies, onOpen }) {
+  const a = useMemo(() => aggregate(companies), [companies]);
+  const M = window.PCD.MONTHS, PLANS = window.PCD.PLANS;
+
+  const topCompanies = [...companies].sort((x, y) => y.thisMonth - x.thisMonth).slice(0, 6);
+  const alerts = companies
+    .filter((c) => c.status === 'vencida' || c.status === 'morosa' || c.pending > 0)
+    .sort((x, y) => y.pending - x.pending).slice(0, 6);
+
+  const donutSegs = [
+    { id: 'pro', label: 'Pro', value: a.planCount.pro, color: PLANS.pro.color, mrr: PLANS.pro.price * a.planCount.pro },
+    { id: 'estandar', label: 'Estándar', value: a.planCount.estandar, color: PLANS.estandar.color, mrr: PLANS.estandar.price * a.planCount.estandar },
+    { id: 'base', label: 'Base', value: a.planCount.base, color: PLANS.base.color, mrr: PLANS.base.price * a.planCount.base },
+  ];
+
+  const kpis = [
+    { ico: 'dollar', label: 'Ingreso mensual', val: fmtCompact(a.thisMonth), delta: a.growth, spark: a.monthlyAgg.slice(-7) },
+    { ico: 'refresh', label: 'MRR suscripciones', val: fmtMoney(a.mrr), sub: a.active + ' suscripciones activas' },
+    { ico: 'cart', label: 'Pedidos del mes', val: fmtNum(a.orders), delta: a.ordersGrowth, spark: companies.map(c=>c.orders) },
+    { ico: 'building', label: 'Empresas activas', val: a.active + '/' + companies.length, sub: (companies.length - a.active) + ' inactivas o en mora' },
+    { ico: 'alert', label: 'Pagos pendientes', val: fmtCompact(a.pending), danger: true, sub: alerts.length + ' empresas con saldo' },
+  ];
+
+  return (
+    <div className="fade-in grid" style={{ gap: 14 }}>
+      {/* KPIs */}
+      <div className="kpis">
+        {kpis.map((k, i) => (
+          <div className="kpi" key={i}>
+            <div className="kpi-top">
+              <Icon name={k.ico} className="kpi-ico" size={15} style={k.danger ? { color: 'var(--red)' } : null} />
+              <span className="kpi-label">{k.label}</span>
+            </div>
+            {k.spark && <div className="kpi-spark"><Sparkline data={k.spark} w={60} h={22} fill color={k.danger ? 'var(--red)' : 'var(--accent)'} /></div>}
+            <div className="kpi-val" style={k.danger ? { color: 'var(--red)' } : null}>{k.val}</div>
+            <div className="kpi-foot">
+              {typeof k.delta === 'number' ? <><Delta value={k.delta} /> <span>vs mes ant.</span></> : <span>{k.sub}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Row: revenue chart + plan donut */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.9fr 1fr', gap: 14 }}>
+        <div className="panel">
+          <div className="panel-head">
+            <div>
+              <div className="panel-title">Ingresos por mes</div>
+              <div className="panel-sub">Consolidado de todas las distribuidoras · últimos 12 meses</div>
+            </div>
+            <div className="spacer"></div>
+            <div className="right">
+              <div className="num" style={{ fontSize: 18 }}>{fmtMoney(a.monthlyAgg.reduce((x, y) => x + y, 0))}</div>
+              <div className="tiny dim">acumulado 12m</div>
+            </div>
+          </div>
+          <div className="panel-body"><BarChart data={a.monthlyAgg} labels={M} height={210} /></div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><div className="panel-title">Distribución por plan</div></div>
+          <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <Donut segments={donutSegs} centerVal={companies.length} centerLab="empresas" size={156} />
+            <div className="legend" style={{ flexDirection: 'column', gap: 10, width: '100%' }}>
+              {donutSegs.map((s, i) => (
+                <div key={i} className="between" style={{ width: '100%' }}>
+                  <span className="legend-item"><span className="legend-swatch" style={{ background: s.color }}></span>{s.label}</span>
+                  <span className="num muted tiny">{s.value} · {fmtMoney(s.mrr)}/mes</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row: top companies + alerts */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 14 }}>
+        <div className="panel">
+          <div className="panel-head">
+            <div className="panel-title">Top empresas por ingreso</div>
+            <div className="spacer"></div>
+            <span className="panel-sub">mes actual</span>
+          </div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr>
+                <th>Empresa</th><th>Plan</th><th className="r">Ingreso mes</th><th className="r">Crec.</th><th className="r">Pedidos</th><th style={{width:80}}></th>
+              </tr></thead>
+              <tbody>
+                {topCompanies.map((c) => (
+                  <tr key={c.id} onClick={() => onOpen(c.id)}>
+                    <td><div className="co-cell"><Logo co={c} /><div><div className="co-name">{c.name}</div><div className="co-meta">{c.city}</div></div></div></td>
+                    <td><PlanBadge plan={c.plan} /></td>
+                    <td className="r num">{fmtMoney(c.thisMonth)}</td>
+                    <td className="r"><Delta value={c.growth} /></td>
+                    <td className="r num muted">{fmtNum(c.orders)}</td>
+                    <td className="r"><span className="dim" style={{display:'inline-flex'}}><Icon name="chevR" size={15} /></span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><Icon name="alert" size={15} style={{ color: 'var(--amber)' }} /><div className="panel-title">Atención requerida</div></div>
+          <div className="panel-body" style={{ paddingTop: 4, paddingBottom: 4 }}>
+            {alerts.length === 0 && <div className="empty-state tiny">Todo al día 🎉</div>}
+            {alerts.map((c) => {
+              const danger = c.status === 'morosa' || c.status === 'vencida';
+              return (
+                <div className="alert-row" key={c.id} style={{ cursor: 'pointer' }} onClick={() => onOpen(c.id)}>
+                  <div className="alert-ico" style={{ background: danger ? 'var(--red-soft)' : 'var(--amber-soft)' }}>
+                    <Icon name={c.status === 'vencida' ? 'clock' : 'alert'} size={15} style={{ color: danger ? 'var(--red)' : 'var(--amber)' }} />
+                  </div>
+                  <div className="alert-main">
+                    <div className="alert-title"><b>{c.name}</b></div>
+                    <div className="alert-time">
+                      {c.status === 'morosa' ? `Mora de ${c.overdueDays} días · ${fmtMoney(c.pending)}`
+                        : c.status === 'vencida' ? `Suscripción vencida · ${fmtMoney(c.pending)}`
+                        : `Saldo pendiente · ${fmtMoney(c.pending)}`}
+                    </div>
+                  </div>
+                  <StatusBadge status={c.status} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ EMPRESAS (lista) ============================ */
+function Empresas({ companies, query, setQuery, onOpen, onEdit, onDelete }) {
+  const [plan, setPlan] = useState('todos');
+  const [estado, setEstado] = useState('todos');
+  const [sort, setSort] = useState({ key: 'thisMonth', dir: -1 });
+  const PLANS = window.PCD.PLANS;
+
+  const rows = useMemo(() => {
+    let r = companies.filter((c) => {
+      if (plan !== 'todos' && c.plan !== plan) return false;
+      if (estado !== 'todos' && c.status !== estado) return false;
+      if (query && !(c.name + ' ' + c.city + ' ' + c.contact).toLowerCase().includes(query.toLowerCase())) return false;
+      return true;
+    });
+    const k = sort.key;
+    r = [...r].sort((a, b) => {
+      const va = typeof a[k] === 'string' ? a[k].toLowerCase() : a[k];
+      const vb = typeof b[k] === 'string' ? b[k].toLowerCase() : b[k];
+      return va < vb ? -sort.dir : va > vb ? sort.dir : 0;
+    });
+    return r;
+  }, [companies, plan, estado, query, sort]);
+
+  const maxRev = Math.max(...companies.map((c) => c.thisMonth));
+  const Th = ({ k, children, r }) => (
+    <th className={(r ? 'r ' : '') + 'th-sort'} onClick={() => setSort((s) => ({ key: k, dir: s.key === k ? -s.dir : -1 }))}>
+      {children}{sort.key === k && <span className="caret">{sort.dir === -1 ? '▾' : '▴'}</span>}
+    </th>
+  );
+
+  return (
+    <div className="fade-in grid" style={{ gap: 14 }}>
+      <div className="filters">
+        <div className="search" style={{ width: 260 }}>
+          <Icon name="search" size={15} />
+          <input placeholder="Buscar empresa, ciudad o contacto…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <select className="select" value={plan} onChange={(e) => setPlan(e.target.value)}>
+          <option value="todos">Todos los planes</option>
+          <option value="pro">Pro</option><option value="estandar">Estándar</option><option value="base">Base</option>
+        </select>
+        <select className="select" value={estado} onChange={(e) => setEstado(e.target.value)}>
+          <option value="todos">Todos los estados</option>
+          <option value="activa">Activa</option><option value="prueba">Prueba</option>
+          <option value="vencida">Vencida</option><option value="morosa">Morosa</option>
+        </select>
+        <div className="topbar-spacer" style={{ flex: 1 }}></div>
+        <span className="count-pill">{rows.length} de {companies.length}</span>
+      </div>
+
+      <div className="panel">
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr>
+              <Th k="name">Empresa</Th>
+              <Th k="plan">Plan</Th>
+              <Th k="status">Estado</Th>
+              <Th k="thisMonth" r>Ingreso mes</Th>
+              <Th k="growth" r>Crec.</Th>
+              <Th k="orders" r>Pedidos</Th>
+              <Th k="users" r>Usuarios</Th>
+              <Th k="pending" r>Pagos pend.</Th>
+              <th>Renovación</th>
+              <th className="r">Acciones</th>
+            </tr></thead>
+            <tbody>
+              {rows.map((c) => (
+                <tr key={c.id} onClick={() => onOpen(c.id)}>
+                  <td><div className="co-cell"><Logo co={c} /><div><div className="co-name">{c.name}</div><div className="co-meta">{c.city || '—'}{c.clientCount > 0 ? ' · ' + c.clientCount + ' clientes' : ''}</div></div></div></td>
+                  <td><PlanBadge plan={c.plan} /></td>
+                  <td><StatusBadge status={c.status} /></td>
+                  <td className="r">
+                    <div className="num">{fmtMoney(c.thisMonth)}</div>
+                    <div className="bar-mini" style={{ marginLeft: 'auto', marginTop: 4 }}><span style={{ width: (c.thisMonth / maxRev * 100) + '%', background: 'var(--accent)' }}></span></div>
+                  </td>
+                  <td className="r"><Delta value={c.growth} /></td>
+                  <td className="r num muted">{fmtNum(c.orders)}</td>
+                  <td className="r num muted">{c.users}</td>
+                  <td className="r num" style={{ color: c.pending > 0 ? 'var(--red)' : 'var(--text-dim)' }}>{c.pending > 0 ? fmtMoney(c.pending) : '—'}</td>
+                  <td className="dim tiny">{c.renewal}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <div className="row-actions">
+                      <button className="icon-btn" title="Ver detalle" onClick={() => onOpen(c.id)}><Icon name="eye" size={14} /></button>
+                      <button className="icon-btn" title="Editar" onClick={() => onEdit(c)}><Icon name="edit" size={14} /></button>
+                      <button className="icon-btn" title="Eliminar" onClick={() => onDelete(c)}><Icon name="trash" size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {rows.length === 0 && <div className="empty-state"><Icon name="search" size={28} /><div>Sin resultados para estos filtros.</div></div>}
+      </div>
+    </div>
+  );
+}
+
+/* ============================ DETALLE ============================ */
+function Detalle({ co, onBack, onEdit, onChangePlan, onDelete, onMarkPaid, onRemind, onNewUsuario, onEditUsuario, onDeleteUsuario }) {
+
+  const ROLES = {
+    admin: { label: 'Administrador', cls: 'badge-violet' },
+    vendedor: { label: 'Vendedor', cls: 'badge-blue' },
+    repartidor: { label: 'Repartidor', cls: 'badge-green' },
+    cliente: { label: 'Cliente', cls: 'badge-gray' },
+  };
+  const getRol = (r) => ROLES[r] || { label: r || 'Sin rol', cls: 'badge-gray' };
+  const [mode, setMode] = useState('mensual');
+  const M = window.PCD.MONTHS, PLANS = window.PCD.PLANS;
+  const plan = PLANS[co.plan];
+  const series = mode === 'mensual' ? co.monthly : co.daily;
+  const labels = mode === 'mensual' ? M : Array.from({ length: 30 }, (_, i) => (i + 1).toString());
+  const maxProd = Math.max(...co.topProducts.map((p) => p.revenue));
+
+  const stats = [
+    { lab: 'Ingreso mensual', val: fmtMoney(co.thisMonth), foot: <Delta value={co.growth} /> },
+    { lab: 'Ingreso 12 meses', val: fmtCompact(co.revenueYear), foot: <span className="dim">ticket prom. {fmtMoney(co.ticket)}</span> },
+    { lab: 'Pedidos del mes', val: fmtNum(co.orders), foot: <Delta value={((co.orders - co.ordersPrev) / co.ordersPrev) * 100} /> },
+    { lab: 'Usuarios activos', val: co.users, foot: <Delta value={co.usersTrend} suffix="%" /> },
+  ];
+
+  return (
+    <div className="fade-in grid" style={{ gap: 16 }}>
+      <div className="between">
+        <button className="btn btn-ghost btn-sm" onClick={onBack}><Icon name="chevR" size={15} style={{ transform: 'rotate(180deg)' }} /> Empresas</button>
+        <div className="flex" style={{ gap: 8 }}>
+          <button className="btn" onClick={() => onChangePlan(co)}><Icon name="refresh" size={14} /> Cambiar plan</button>
+          <button className="btn btn-primary" onClick={() => onEdit(co)}><Icon name="edit" size={14} /> Editar empresa</button>
+          <button className="btn btn-ghost btn-sm" title="Eliminar empresa" style={{ color: 'var(--red)' }} onClick={() => onDelete(co)}><Icon name="trash" size={14} /></button>
+        </div>
+      </div>
+
+      <div className="detail-head">
+        <div className="detail-logo" style={{ background: co.logoColor }}>{co.initials}</div>
+        <div className="detail-meta" style={{ flex: 1 }}>
+          <h1>{co.name}</h1>
+          <div className="d-sub">
+            <span><Icon name="pin" size={13} style={{ verticalAlign: -2 }} /> {co.city}</span><span className="sep-dot"></span>
+            <span><Icon name="mail" size={13} style={{ verticalAlign: -2 }} /> {co.contact}</span><span className="sep-dot"></span>
+            <span className="mono">{co.taxId}</span><span className="sep-dot"></span>
+            <span>Cliente desde {co.since}</span>
+          </div>
+          {co.codigo && (
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <code style={{ fontSize: 11, color: 'var(--accent)', background: 'var(--panel-3)', padding: '3px 8px', borderRadius: 4 }}>
+                ?emp={co.codigo}
+              </code>
+              <button onClick={() => {
+                const url = 'https://pagina-clientes-pedidos.vercel.app/?emp=' + co.codigo;
+                navigator.clipboard?.writeText(url).then(() => alert('✅ Link copiado:\n' + url));
+              }} style={{ padding: '3px 10px', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)', borderRadius: 5, cursor: 'pointer', color: 'var(--accent)', fontSize: 11, fontWeight: 600, fontFamily: 'inherit' }}>
+                🔗 Copiar link
+              </button>
+              <a href={'https://pagina-clientes-pedidos.vercel.app/?emp=' + co.codigo} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none' }}>
+                Abrir app ↗
+              </a>
+            </div>
+          )}
+        </div>
+        <div className="flex" style={{ gap: 8, alignItems: 'center' }}>
+          <PlanBadge plan={co.plan} /><StatusBadge status={co.status} />
+        </div>
+      </div>
+
+      <div className="stat-grid">
+        {stats.map((s, i) => (
+          <div className="stat" key={i}>
+            <div className="stat-lab">{s.lab}</div>
+            <div className="stat-val">{s.val}</div>
+            <div className="stat-foot">{s.foot}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1fr', gap: 14 }}>
+        <div className="panel">
+          <div className="panel-head">
+            <div className="panel-title">Ventas</div>
+            <div className="spacer"></div>
+            <div className="seg">
+              <button className={mode === 'mensual' ? 'on' : ''} onClick={() => setMode('mensual')}>Mensual</button>
+              <button className={mode === 'diario' ? 'on' : ''} onClick={() => setMode('diario')}>Diario</button>
+            </div>
+          </div>
+          <div className="panel-body">
+            {mode === 'mensual'
+              ? <BarChart data={series} labels={labels} height={210} />
+              : <AreaChart data={series} labels={labels.filter((_, i) => i % 3 === 0 || i === 29).length === labels.length ? labels : labels.map((l,i)=> (i%4===0||i===29)? l : '')} height={210} fmt={fmtMoney} />}
+            <div className="tiny dim" style={{ marginTop: 8 }}>{mode === 'mensual' ? 'Ingresos por mes (12m)' : 'Ventas diarias del mes en curso (30 días)'}</div>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><Icon name="box" size={15} style={{ color: 'var(--text-muted)' }} /><div className="panel-title">Productos más vendidos</div></div>
+          <div className="panel-body" style={{ paddingTop: 6 }}>
+            {co.topProducts.map((p, i) => (
+              <div className="lrow" key={i}>
+                <span className="l-rank">{(i + 1).toString().padStart(2, '0')}</span>
+                <div className="l-main">
+                  <div className="l-name">{p.name}</div>
+                  <div className="cap" style={{ marginTop: 6 }}><span style={{ width: (p.revenue / maxProd * 100) + '%', background: 'var(--accent)' }}></span></div>
+                </div>
+                <div className="right">
+                  <div className="l-val">{fmtMoney(p.revenue)}</div>
+                  <div className="tiny dim mono">{fmtNum(p.units)} u.</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div className="panel">
+          <div className="panel-head"><Icon name="card" size={15} style={{ color: 'var(--text-muted)' }} /><div className="panel-title">Suscripción</div></div>
+          <div className="panel-body">
+            <dl className="dl">
+              <dt>Plan actual</dt><dd><PlanBadge plan={co.plan} /></dd>
+              <dt>Precio mensual</dt><dd>{fmtMoney(plan.price)}</dd>
+              <dt>Estado</dt><dd><StatusBadge status={co.status} /></dd>
+              <dt>Sucursales</dt><dd>{co.sucursales}</dd>
+              <dt>Usuarios</dt><dd>{co.users}</dd>
+              <dt>Renovación</dt><dd style={{ color: co.status === 'vencida' ? 'var(--amber)' : 'inherit' }}>{co.renewal}</dd>
+            </dl>
+            <div className="divline"></div>
+            {(co.status === 'vencida' || co.status === 'morosa') && (() => {
+              const mpLink = (window.SUPA.mercadopago || {})[co.plan] || '';
+              const precio = plan.price;
+              return (
+                <div style={{ background: 'rgba(247,109,109,0.08)', border: '1px solid rgba(247,109,109,0.3)', borderRadius: 8, padding: 14, marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--red)', marginBottom: 8 }}>
+                    ⚠️ Suscripción vencida — acceso bloqueado
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 12 }}>
+                    Para reactivar el acceso, {co.name} debe abonar el plan {plan.name}.
+                    {precio > 0 ? ' Monto: ' + fmtMoney(precio) + '/mes.' : ''}
+                  </div>
+                  {mpLink ? (
+                    <a href={mpLink} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        width: '100%', padding: '10px 0', borderRadius: 7, textDecoration: 'none',
+                        background: '#009ee3', color: '#fff', fontWeight: 700, fontSize: 13.5 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.002 2C6.477 2 2 6.477 2 12.002 2 17.525 6.477 22 12.002 22 17.525 22 22 17.525 22 12.002 22 6.477 17.525 2 12.002 2zM8.5 15.5c-.69 0-1.25-.56-1.25-1.25V9.75C7.25 9.06 7.81 8.5 8.5 8.5h7c.69 0 1.25.56 1.25 1.25v4.5c0 .69-.56 1.25-1.25 1.25H8.5z"/>
+                      </svg>
+                      Pagar con Mercado Pago
+                    </a>
+                  ) : (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0' }}>
+                      Configurá el link de MP en <code>window.SUPA.mercadopago.{co.plan}</code>
+                    </div>
+                  )}
+                  <button style={{ marginTop: 8, width: '100%', padding: '8px 0', borderRadius: 7, border: 'none',
+                    background: 'rgba(52,211,156,0.13)', color: 'var(--green)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+                    onClick={() => {
+                      const tel = co.contact?.replace(/[^0-9]/g,'');
+                      const msg = '💳 *Pago CoreDistri — ' + plan.name + '*\n\n' +
+                        'Empresa: *' + co.name + '*\n' +
+                        (precio > 0 ? 'Monto: *$' + precio.toLocaleString("es-AR") + '/mes*\n' : '') +
+                        (mpLink ? '\n🔗 Link de pago:\n' + mpLink : '') +
+                        '\n\nUna vez realizado el pago, mandanos el comprobante y reactivamos el acceso de inmediato. ✅';
+                      if (tel) window.open('https://wa.me/549' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+                      else navigator.clipboard?.writeText(msg).then(() => alert('Mensaje copiado al portapapeles'));
+                    }}>
+                    📲 Enviar link por WhatsApp
+                  </button>
+                </div>
+              );
+            })()}
+            <button className="btn" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onChangePlan(co)}><Icon name="refresh" size={14} /> Cambiar de plan</button>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><Icon name="alert" size={15} style={{ color: co.pending > 0 ? 'var(--red)' : 'var(--green)' }} /><div className="panel-title">Cobranza</div></div>
+          <div className="panel-body">
+            {co.pending > 0 ? (
+              <>
+                <div className="stat-lab">Saldo pendiente</div>
+                <div className="num" style={{ fontSize: 28, color: 'var(--red)', margin: '6px 0' }}>{fmtMoney(co.pending)}</div>
+                <div className="tiny" style={{ color: co.overdueDays > 15 ? 'var(--red)' : 'var(--amber)' }}>
+                  {co.overdueDays > 0 ? `Vencido hace ${co.overdueDays} días` : 'Por vencer'}
+                </div>
+                <div className="divline"></div>
+                <div className="flex" style={{ gap: 8 }}>
+                  <button className="btn btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => onRemind(co)}><Icon name="mail" size={13} /> Enviar recordatorio</button>
+                  <button className="btn btn-sm btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => onMarkPaid(co)}><Icon name="check" size={13} /> Marcar pagado</button>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 140, color: 'var(--green)' }}>
+                <Icon name="check" size={30} />
+                <div style={{ marginTop: 8 }}>Sin pagos pendientes</div>
+                <div className="tiny dim">La cuenta está al día</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Actividad y salud ────────────────────────── */}
+      {(() => {
+        const ordenes30 = (co.daily || []).reduce((s,v) => s+v, 0);
+        const ordenesMes = co.orders || 0;
+        const maxDaily = Math.max(...(co.daily || [1]));
+        const actDays = (co.daily || []).filter(v => v > 0).length;
+        const score = actDays >= 20 ? 'activa' : actDays >= 8 ? 'moderada' : 'riesgo';
+        const scoreColor = { activa: 'var(--green)', moderada: 'var(--amber)', riesgo: 'var(--red)' }[score];
+        const scoreLabel = { activa: '● Muy activa', moderada: '● Uso moderado', riesgo: '● En riesgo' }[score];
+        const clientesPct = co.clientCount > 0 ? Math.round((co.clientCount / Math.max(co.clientCount + (co.equipo||[]).length, 1)) * 100) : 0;
+        return (
+          <div className="panel" style={{ marginTop: 0 }}>
+            <div className="panel-head">
+              <Icon name="chart" size={15} style={{ color: 'var(--accent)' }} />
+              <div className="panel-title">Actividad y uso real</div>
+              <div className="spacer"></div>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: scoreColor }}>{scoreLabel}</span>
+            </div>
+            <div className="panel-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
+                {[
+                  { lab: 'Pedidos (30d)', val: fmtNum(ordenes30) },
+                  { lab: 'Días con actividad', val: actDays + '/30' },
+                  { lab: 'Clientes en app', val: fmtNum(co.clientCount) },
+                  { lab: 'Equipo', val: fmtNum((co.equipo||[]).length) },
+                ].map((s,i) => (
+                  <div key={i} style={{ background: 'var(--bg)', borderRadius: 6, padding: '10px 12px' }}>
+                    <div className="tiny dim">{s.lab}</div>
+                    <div style={{ fontSize: 20, fontWeight: 600, marginTop: 4, fontFamily: 'IBM Plex Mono, monospace' }}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="tiny dim" style={{ marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.4px' }}>Actividad diaria — últimos 30 días</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 48 }}>
+                {(co.daily || Array(30).fill(0)).map((v,i) => {
+                  const h = maxDaily > 0 ? Math.max(3, Math.round((v / maxDaily) * 44)) : 3;
+                  return (
+                    <div key={i} title={'Día ' + (i+1) + ': ' + fmtMoney(v)}
+                      style={{ flex: 1, height: h + 'px', background: v > 0 ? 'var(--accent)' : 'var(--border)', borderRadius: 2, opacity: v > 0 ? 1 : 0.4 }} />
+                  );
+                })}
+              </div>
+              <div className="divline" style={{ margin: '12px 0' }}></div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {score === 'riesgo' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--red-soft)', borderRadius: 6, fontSize: 12 }}>
+                    <Icon name="alert" size={13} style={{ color: 'var(--red)' }} />
+                    <span style={{ color: 'var(--red)' }}>Menos de 8 días activos — riesgo de cancelación</span>
+                  </div>
+                )}
+                {score === 'moderada' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--amber-soft)', borderRadius: 6, fontSize: 12 }}>
+                    <Icon name="alert" size={13} style={{ color: 'var(--amber)' }} />
+                    <span style={{ color: 'var(--amber)' }}>Uso moderado — potencial para crecer al plan Pro</span>
+                  </div>
+                )}
+                {score === 'activa' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--green-soft)', borderRadius: 6, fontSize: 12 }}>
+                    <Icon name="check" size={13} style={{ color: 'var(--green)' }} />
+                    <span style={{ color: 'var(--green)' }}>Empresa muy activa — cliente sólido</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Equipo ─────────────────────────────────────── */}
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="panel-head">
+          <Icon name="users" size={15} style={{ color: 'var(--accent)' }} />
+          <div className="panel-title">Equipo</div>
+          {co.clientCount > 0 && (
+            <span className="badge badge-gray" style={{ marginLeft: 8 }}>
+              {co.clientCount} {co.clientCount === 1 ? 'cliente' : 'clientes'}
+            </span>
+          )}
+          <div className="spacer"></div>
+          <div className="flex" style={{ gap: 6 }}>
+            {['admin','vendedor','repartidor'].map((r) => (
+              <button key={r} className="btn btn-sm" onClick={() => onNewUsuario && onNewUsuario(co, r)}>
+                <Icon name="plus" size={12} /> {getRol(r).label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {(co.equipo || []).length === 0 ? (
+          <div className="empty-state" style={{ minHeight: 100 }}>
+            <Icon name="users" size={22} />
+            <div>Sin usuarios creados</div>
+            <div className="tiny dim">Creá un Vendedor, Repartidor o Administrador</div>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr>
+                <th>Nombre</th><th>Código acceso</th><th>Rol</th>
+                <th>Lista</th><th>Zona</th><th className="r">Acceso</th><th className="r">Acciones</th>
+              </tr></thead>
+              <tbody>
+                {(co.equipo || []).map((u) => {
+                  const rol = getRol(u.role);
+                  return (
+                    <tr key={u.id}>
+                      <td><span className="co-name">{u.name || '—'}</span></td>
+                      <td><code style={{ fontSize: 12, color: 'var(--text-2)', background: 'var(--bg-1,#13131a)', padding: '2px 6px', borderRadius: 4 }}>{u.uid}</code></td>
+                      <td><span className={'badge ' + rol.cls}>{rol.label}</span></td>
+                      <td className="tiny dim">{u.lista || '—'}</td>
+                      <td className="tiny dim">{u.zona || '—'}</td>
+                      <td className="r">
+                        <span style={{ color: u.catalogo !== false ? 'var(--green)' : 'var(--red)', fontSize: 11 }}>
+                          {u.catalogo !== false ? '● Activo' : '● Bloqueado'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          <button className="icon-btn" title="Editar" onClick={() => onEditUsuario && onEditUsuario(co, u)}><Icon name="edit" size={13} /></button>
+                          <button className="icon-btn" title="Eliminar" onClick={() => onDeleteUsuario && onDeleteUsuario(u)}><Icon name="trash" size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Dashboard, Empresas, Detalle, aggregate });
+
+
+/* Modales */
+/* ==========================================================
+   Vistas: Suscripciones · Reportes  +  Modales
+   ========================================================== */
+
+/* ============================ SUSCRIPCIONES ============================ */
+function Suscripciones({ companies, onOpen, onChangePlan, onSetVence, onConfirmPayment, onUpdatePlanPrice, planPrices }) {
+  const PLANS = window.PCD.PLANS;
+  const daysUntil = window.PCD.daysUntilVence;
+  const a = useMemo(() => aggregate(companies), [companies]);
+  const order = { activa: 0, prueba: 1, vencida: 2, morosa: 3 };
+  const rows = [...companies].sort((x, y) => (order[x.status] - order[y.status]) || PLANS[y.plan].price - PLANS[x.plan].price);
+  const planList = ['pro', 'estandar', 'base'];
+
+  // Empresas urgentes: vencen en <= 7 días o ya vencidas con gracia activa
+  const urgentes = rows.filter((c) => {
+    const d = daysUntil(c.renewalISO);
+    return d !== null && d <= 7;
+  });
+
+  function DiasBadge({ iso }) {
+    const d = daysUntil(iso);
+    if (d === null) return <span className="dim tiny">Sin fecha</span>;
+    if (d > 7)  return <span className="badge badge-green">{d}d</span>;
+    if (d >= 0) return <span className="badge badge-amber">{d === 0 ? 'Hoy' : d + 'd'}</span>;
+    if (d >= -5) return <span className="badge badge-amber">Gracia {Math.abs(d)}d</span>;
+    return <span className="badge badge-red">Bloqueada</span>;
+  }
+
+  return (
+    <div className="fade-in grid" style={{ gap: 14 }}>
+
+      {/* Alertas urgentes */}
+      {urgentes.length > 0 && (
+        <div className="panel" style={{ borderLeft: '3px solid var(--amber, #f5b13d)' }}>
+          <div className="panel-body" style={{ padding: '12px 16px' }}>
+            <div className="flex" style={{ gap: 10, alignItems: 'center' }}>
+              <Icon name="alert" size={16} style={{ color: 'var(--amber, #f5b13d)', flexShrink: 0 }} />
+              <div>
+                <div className="tiny" style={{ fontWeight: 600, marginBottom: 4 }}>
+                  {urgentes.length === 1 ? '1 empresa' : urgentes.length + ' empresas'} vencen en los próximos 7 días
+                </div>
+                <div className="tiny dim">
+                  {urgentes.map((c) => {
+                    const d = daysUntil(c.renewalISO);
+                    return c.name + (d === 0 ? ' (hoy)' : d < 0 ? ' (en gracia)' : ' (' + d + 'd)');
+                  }).join(' · ')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cards MRR por plan */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+        {planList.map((pid) => {
+          const p = PLANS[pid];
+          const precio = planPrices ? planPrices[pid] : p.price;
+          const count = a.planCount[pid];
+          const active = companies.filter((c) => c.plan === pid && (c.status === 'activa' || c.status === 'prueba')).length;
+          return (
+            <div className="panel" key={pid} style={{ borderTop: '3px solid ' + p.color }}>
+              <div className="panel-body">
+                <div className="between" style={{ alignItems: 'flex-start' }}>
+                  <span className="badge plan-tag" style={{ background: p.color + '22', color: p.color, borderColor: p.color + '55' }}>{p.name}</span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div className="tiny dim" style={{ marginBottom: 4 }}>Precio mensual</div>
+                    <div className="flex" style={{ alignItems: 'center', gap: 4, justifyContent: 'flex-end',
+                      background: 'var(--bg-1,#13131a)', border: '1px solid var(--border,#2a2a3a)',
+                      borderRadius: 6, padding: '4px 8px' }}>
+                      <span className="tiny" style={{ color: 'var(--text-2)' }}>$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={precio}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => onUpdatePlanPrice(pid, e.target.value)}
+                        style={{
+                          width: 72, background: 'transparent', border: 'none',
+                          color: 'var(--text-1,#e8e8f0)', fontSize: 13, fontWeight: 600,
+                          textAlign: 'right', outline: 'none', fontFamily: 'inherit',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="num" style={{ fontSize: 30, margin: '12px 0 2px', letterSpacing: '-0.03em' }}>{fmtMoney(precio * active)}</div>
+                <div className="tiny dim">MRR · {active} activas de {count} totales</div>
+                <div className="cap" style={{ marginTop: 12 }}><span style={{ width: companies.length ? (count / companies.length * 100) + '%' : '0%', background: p.color }}></span></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Tabla */}
+      <div className="panel">
+        <div className="panel-head">
+          <div className="panel-title">Todas las suscripciones</div>
+          <div className="spacer"></div>
+          <div className="right"><div className="num" style={{ fontSize: 17 }}>{fmtMoney(a.mrr)}</div><div className="tiny dim">MRR total</div></div>
+        </div>
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead><tr>
+              <th>Empresa</th>
+              <th>Plan</th>
+              <th className="r">Precio</th>
+              <th>Estado</th>
+              <th>Fecha cobro</th>
+              <th>Vence en</th>
+              <th className="r">Saldo pend.</th>
+              <th className="r">Acciones</th>
+            </tr></thead>
+            <tbody>
+              {rows.map((c) => {
+                const dias = daysUntil(c.renewalISO);
+                const rowStyle = dias !== null && dias < -5 ? { opacity: 0.65 } : {};
+                return (
+                  <tr key={c.id} onClick={() => onOpen(c.id)} style={rowStyle}>
+                    <td>
+                      <div className="co-cell">
+                        <Logo co={c} size={26} radius={6} />
+                        <span className="co-name">{c.name}</span>
+                        {dias !== null && dias < -5 && <Icon name="lock" size={11} style={{ color: 'var(--red)', marginLeft: 4 }} />}
+                      </div>
+                    </td>
+                    <td><PlanBadge plan={c.plan} /></td>
+                    <td className="r num">{fmtMoney(PLANS[c.plan].price)}</td>
+                    <td><StatusBadge status={c.status} /></td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="date"
+                        value={c.renewalISO || ''}
+                        onChange={(e) => onSetVence(c, e.target.value)}
+                        className="tiny"
+                        style={{
+                          background: 'var(--bg-2,#1a1a24)',
+                          border: '1px solid var(--border,#2a2a3a)',
+                          borderRadius: 6,
+                          color: 'var(--text-1,#e8e8f0)',
+                          padding: '4px 8px',
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          width: 130,
+                        }}
+                      />
+                    </td>
+                    <td><DiasBadge iso={c.renewalISO} /></td>
+                    <td className="r num" style={{ color: c.pending > 0 ? 'var(--red)' : 'var(--text-dim)' }}>
+                      {c.pending > 0 ? fmtMoney(c.pending) : '—'}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <div className="row-actions">
+                        <button className="btn btn-sm btn-primary" onClick={() => onConfirmPayment(c)}
+                          style={{ fontSize: 11 }} title="Confirmar pago y extender 30 días">
+                          <Icon name="check" size={12} /> Cobrado
+                        </button>
+                        <button className="btn btn-sm" onClick={() => onChangePlan(c)} style={{ fontSize: 11 }}>
+                          <Icon name="refresh" size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="panel-body" style={{ borderTop: '1px solid var(--border,#2a2a3a)', padding: '10px 16px' }}>
+          <div className="tiny dim" style={{ lineHeight: 1.7 }}>
+            <strong style={{ color: 'var(--text-1)' }}>Lógica de acceso:</strong> si una empresa supera 5 días sin pagar después de la fecha de cobro,
+            su estado pasa a <em>Vencida</em> automáticamente y se bloquea el acceso al catálogo de todos sus usuarios.
+            Al confirmar el pago, el acceso se restaura y la próxima fecha se extiende 30 días.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ REPORTES ============================ */
+
+/* ═══════════════════════════════════════════
+   COBROS Y FACTURACIÓN
+═══════════════════════════════════════════ */
+const LS_PAGOS = 'pcd_pagos_v2';
+
+function getPagos(coId) {
+  try { return (JSON.parse(localStorage.getItem(LS_PAGOS)) || {})[coId] || []; }
+  catch(e) { return []; }
+}
+function savePago(coId, pago) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_PAGOS)) || {};
+    if (!all[coId]) all[coId] = [];
+    all[coId].unshift(pago);
+    if (all[coId].length > 50) all[coId] = all[coId].slice(0, 50);
+    localStorage.setItem(LS_PAGOS, JSON.stringify(all));
+  } catch(e) {}
+}
+
+function Cobros({ companies, onOpen, onConfirmPayment, onToast }) {
+  const [selId, setSelId] = React.useState(null);
+  const [monto, setMonto] = React.useState('');
+  const [medio, setMedio] = React.useState('Transferencia');
+  const [nota, setNota] = React.useState('');
+  const [pagos, setPagos] = React.useState({});
+
+  React.useEffect(() => {
+    try { setPagos(JSON.parse(localStorage.getItem(LS_PAGOS)) || {}); }
+    catch(e) { setPagos({}); }
+  }, []);
+
+  const conDeuda = companies.filter((c) => c.pending > 0).sort((a,b) => b.pending - a.pending);
+  const totalDeuda = conDeuda.reduce((s,c) => s + c.pending, 0);
+  const selCo = companies.find((c) => c.id === selId);
+  const hisPagos = selId ? (pagos[selId] || []) : [];
+
+  function registrarPago() {
+    const amt = parseFloat(monto.replace(/[^0-9.,]/g,'').replace(',','.'));
+    if (!amt || amt <= 0) { onToast('Ingresá un monto válido'); return; }
+    const pago = { id: Date.now(), monto: amt, medio, nota, fecha: new Date().toISOString().slice(0,10) };
+    savePago(selId, pago);
+    setPagos(JSON.parse(localStorage.getItem(LS_PAGOS)) || {});
+    setMonto(''); setNota('');
+    onToast('Pago registrado — $' + fmtMoney(amt));
+  }
+
+  async function confirmarYCerrar(co) {
+    try { await onConfirmPayment(co); registrarPago(); onToast('Pago confirmado'); }
+    catch(e) { onToast('Error: ' + e.message); }
+  }
+
+  return (
+    <div className="fade-in grid" style={{ gap: 16 }}>
+      <div className="between">
+        <div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 2 }}>Total deuda pendiente</div>
+          <div style={{ fontSize: 28, fontWeight: 600, color: conDeuda.length > 0 ? 'var(--red)' : 'var(--green)', fontFamily: 'IBM Plex Mono, monospace' }}>
+            {fmtMoney(totalDeuda)}
+          </div>
+        </div>
+        <div className="flex" style={{ gap: 12 }}>
+          <div className="stat" style={{ textAlign: 'right' }}>
+            <div className="stat-lab">Empresas con deuda</div>
+            <div className="stat-val" style={{ color: 'var(--red)' }}>{conDeuda.length}</div>
+          </div>
+          <div className="stat" style={{ textAlign: 'right' }}>
+            <div className="stat-lab">Total empresas</div>
+            <div className="stat-val">{companies.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: selId ? '1fr 1fr' : '1fr', gap: 14 }}>
+        <div className="panel">
+          <div className="panel-head"><Icon name="alert" size={15} style={{ color: 'var(--red)' }} /><div className="panel-title">Empresas con saldo pendiente</div></div>
+          {conDeuda.length === 0 ? (
+            <div className="empty-state" style={{ minHeight: 120 }}>
+              <Icon name="check" size={28} style={{ color: 'var(--green)' }} />
+              <div style={{ color: 'var(--green)', marginTop: 8 }}>Todo al día</div>
+              <div className="tiny dim">Sin deudas pendientes</div>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead><tr><th>Empresa</th><th>Plan</th><th className="r">Deuda</th><th className="r">Días</th><th></th></tr></thead>
+                <tbody>
+                  {conDeuda.map((co) => (
+                    <tr key={co.id} style={{ cursor: 'pointer', background: selId === co.id ? 'var(--hover)' : '' }}
+                      onClick={() => setSelId(selId === co.id ? null : co.id)}>
+                      <td><span className="co-name">{co.name}</span></td>
+                      <td><PlanBadge plan={co.plan} /></td>
+                      <td className="r mono" style={{ color: 'var(--red)', fontWeight: 600 }}>{fmtMoney(co.pending)}</td>
+                      <td className="r">
+                        <span style={{ fontSize: 11, color: co.overdueDays > 15 ? 'var(--red)' : 'var(--amber)' }}>
+                          {co.overdueDays > 0 ? co.overdueDays + 'd' : '—'}
+                        </span>
+                      </td>
+                      <td className="r">
+                        <button className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setSelId(co.id); }}>
+                          <Icon name="edit" size={12} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {selCo && (
+          <div className="panel">
+            <div className="panel-head">
+              <Icon name="card" size={15} style={{ color: 'var(--accent)' }} />
+              <div className="panel-title">{selCo.name}</div>
+              <div className="spacer"></div>
+              <button className="btn btn-sm" onClick={() => setSelId(null)}><Icon name="x" size={13} /></button>
+            </div>
+            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: 'var(--bg)', borderRadius: 6, padding: '12px 14px' }}>
+                <div className="tiny dim">Saldo pendiente</div>
+                <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--red)', fontFamily: 'IBM Plex Mono, monospace', margin: '4px 0' }}>
+                  {fmtMoney(selCo.pending)}
+                </div>
+                {selCo.overdueDays > 0 && <div className="tiny" style={{ color: 'var(--amber)' }}>Vencido hace {selCo.overdueDays} días</div>}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div className="tiny dim" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px' }}>Registrar cobro</div>
+                <input className="input" type="number" placeholder="Monto ($)" value={monto} onChange={(e) => setMonto(e.target.value)} />
+                <select className="input" value={medio} onChange={(e) => setMedio(e.target.value)}>
+                  <option>Transferencia</option>
+                  <option>Efectivo</option>
+                  <option>Cheque</option>
+                  <option>Mercado Pago</option>
+                  <option>Otro</option>
+                </select>
+                <input className="input" type="text" placeholder="Nota (opcional)" value={nota} onChange={(e) => setNota(e.target.value)} />
+                <div className="flex" style={{ gap: 8 }}>
+                  <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={registrarPago}>
+                    <Icon name="check" size={14} /> Registrar cobro
+                  </button>
+                  <button className="btn" style={{ flex: 1, justifyContent: 'center' }} onClick={() => {
+                    const tel = selCo.contact?.replace(/[^0-9]/g,'');
+                    if (!tel) { onToast('Sin teléfono de contacto'); return; }
+                    const dias = selCo.overdueDays;
+                    const msg = encodeURIComponent(
+                      'Hola ' + selCo.name + ' 👋\n\n' +
+                      'Le recordamos que tiene un saldo pendiente de *$' + selCo.pending.toLocaleString('es-AR') + '* en su suscripción CoreDistri.' +
+                      (dias > 0 ? '\n⏰ Lleva ' + dias + ' días vencido.' : '') +
+                      '\n\nPor favor regularice el pago para evitar la suspensión del servicio.\n\nGracias!'
+                    );
+                    window.open('https://wa.me/549' + tel + '?text=' + msg, '_blank');
+                  }}>
+                    <Icon name="send" size={14} /> WhatsApp
+                  </button>
+                </div>
+              </div>
+
+              {hisPagos.length > 0 && (
+                <div>
+                  <div className="tiny dim" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>Historial de cobros</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {hisPagos.map((p) => (
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'var(--bg)', borderRadius: 5 }}>
+                        <Icon name="check" size={14} style={{ color: 'var(--green)', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 600 }}>{fmtMoney(p.monto)}</div>
+                          <div className="tiny dim">{p.medio}{p.nota ? ' · ' + p.nota : ''}</div>
+                        </div>
+                        <div className="tiny dim mono">{p.fecha}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Reportes({ companies, onToast }) {
+  const [range, setRange] = useState('30d');
+  const [fmt, setFmt] = useState('CSV');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+  const [preview, setPreview] = useState(null);
+  const [generating, setGenerating] = useState(null);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('pcd_report_hist_v1') || '[]'); } catch (e) { return []; }
+  });
+  const a = useMemo(() => aggregate(companies), [companies]);
+  const P = (window.PCD._pedsConfig || window.SUPA?.pedidos || {});
+  const idKey = P.distribuidoraId || 'empresa_id';
+  const totalKey = P.total || 'total';
+  const fechaKey = P.fecha || 'fecha';
+  const itemsKey = P.items || 'items';
+
+  // ── rango de fechas ────────────────────────────────────────────────
+  const calcRange = (r, cf, ct) => {
+    const now = new Date();
+    if (r === '7d')   return { from: new Date(now - 7*86400000), to: now, label: 'Últimos 7 días' };
+    if (r === '30d')  return { from: new Date(now - 30*86400000), to: now, label: 'Últimos 30 días' };
+    if (r === 'Trimestre') { const q=Math.floor(now.getMonth()/3); return { from: new Date(now.getFullYear(),q*3,1), to: now, label: 'Trimestre actual' }; }
+    if (r === 'Año')  return { from: new Date(now.getFullYear(),0,1), to: now, label: 'Año '+now.getFullYear() };
+    if (r === 'Personalizado') return { from: cf?new Date(cf+'T00:00:00'):new Date(now-30*86400000), to: ct?new Date(ct+'T23:59:59'):now, label: (cf||'?')+' → '+(ct||'?') };
+    return { from: new Date(now-30*86400000), to: now, label: 'Últimos 30 días' };
+  };
+  const { from, to, label: rangeLabel } = useMemo(() => calcRange(range, customFrom, customTo), [range, customFrom, customTo]);
+
+  const filteredVentas = useMemo(() => {
+    return (window.PCD._rawVentas || []).filter(v => { const d = new Date(v[fechaKey]); return d >= from && d <= to; });
+  }, [from, to]);
+
+  // ── KPIs de las cards (reactivo al filtro) ─────────────────────────
+  const kpis = useMemo(() => {
+    const totalIngresos = filteredVentas.reduce((s,v) => s+(+v[totalKey]||0), 0);
+    const activas = new Set(filteredVentas.map(v => v[idKey])).size;
+    const totalPend = companies.reduce((s,c) => s+(c.pending||0), 0);
+    const prodSet = new Set();
+    for (const v of filteredVentas) {
+      let its = v[itemsKey];
+      if (typeof its==='string') try{its=JSON.parse(its);}catch{its=[];}
+      if (Array.isArray(its)) its.forEach(it => { const n=it.n||it.nombre||it.producto; if(n) prodSet.add(n); });
+    }
+    const crec = a.prevMonth>0 ? (((a.thisMonth-a.prevMonth)/a.prevMonth)*100).toFixed(1) : '0.0';
+    return { totalIngresos, activas, mrr: a.mrr, totalPend, productos: prodSet.size, crec };
+  }, [filteredVentas, companies]);
+
+  // ── computación de datos por tipo ─────────────────────────────────
+  const computeReport = (type) => {
+    const coById = {}; companies.forEach(c => coById[c.id] = c);
+
+    if (type === 'ingresos') {
+      const byEmp = {}; const total = filteredVentas.reduce((s,v)=>s+(+v[totalKey]||0),0);
+      filteredVentas.forEach(v => { const k=String(v[idKey]); byEmp[k]=byEmp[k]||{t:0,n:0}; byEmp[k].t+=+v[totalKey]||0; byEmp[k].n++; });
+      const rows = companies.map(c => {
+        const d=byEmp[c.id]||{t:0,n:0};
+        return [c.name,c.city||'—',c.plan,fmtMoney(d.t),String(d.n),d.n?fmtMoney(Math.round(d.t/d.n)):'—',total>0?((d.t/total)*100).toFixed(1)+'%':'—'];
+      }).sort((a,b)=>parseFloat(b[3].replace(/[^0-9.]/g,''))-parseFloat(a[3].replace(/[^0-9.]/g,'')));
+      return { title:'Ingresos consolidados', columns:['Empresa','Ciudad','Plan','Ingresos','Pedidos','Ticket prom.','% total'], rows };
+    }
+
+    if (type === 'ventas') {
+      const now=new Date();
+      const months=[0,1,2].map(i=>{const d=new Date(now.getFullYear(),now.getMonth()-i,1);return{key:d.getFullYear()*12+d.getMonth(),lbl:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d.getMonth()]+' '+d.getFullYear()};}).reverse();
+      const rows = companies.map(c => {
+        const vs=filteredVentas.filter(v=>String(v[idKey])===c.id);
+        const mt=months.map(m=>fmtMoney(vs.filter(v=>{const d=new Date(v[fechaKey]);return d.getFullYear()*12+d.getMonth()===m.key;}).reduce((s,v)=>s+(+v[totalKey]||0),0)));
+        const total=vs.reduce((s,v)=>s+(+v[totalKey]||0),0);
+        return [c.name,c.plan,c.status,...mt,fmtMoney(total),String(vs.length)];
+      }).sort((a,b)=>parseFloat(b[b.length-2].replace(/[^0-9.]/g,''))-parseFloat(a[a.length-2].replace(/[^0-9.]/g,'')));
+      return { title:'Ventas por empresa', columns:['Empresa','Plan','Estado',...months.map(m=>m.lbl),'Total período','Pedidos'], rows };
+    }
+
+    if (type === 'suscripciones') {
+      const PLANS=window.PCD.PLANS;
+      const rows=companies.map(c=>[c.name,c.plan,c.status,c.renewal||'—',fmtMoney(PLANS[c.plan]?.price||0),c.pending>0?fmtMoney(c.pending):'—',c.overdueDays>0?String(c.overdueDays)+'d':'—',c.city||'—',c.contact||'—'])
+        .sort((a,b)=>['activa','prueba','vencida','morosa'].indexOf(a[2])-['activa','prueba','vencida','morosa'].indexOf(b[2]));
+      return { title:'Estado de suscripciones', columns:['Empresa','Plan','Estado','Vence','MRR $','Saldo pend.','Mora','Ciudad','Contacto'], rows };
+    }
+
+    if (type === 'cobranza') {
+      const rows=[...companies].sort((a,b)=>b.overdueDays-a.overdueDays).map(c=>[c.name,c.status,c.pending>0?fmtMoney(c.pending):'$0',c.overdueDays>0?c.overdueDays+'d':'—',c.renewal||'—',c.city||'—',c.contact||'—']);
+      return { title:'Cobranza y morosidad', columns:['Empresa','Estado','Saldo pend.','Mora','Próximo cobro','Ciudad','Contacto'], rows };
+    }
+
+    if (type === 'productos') {
+      const agg={};
+      filteredVentas.forEach(v => {
+        let its=v[itemsKey]; if(typeof its==='string')try{its=JSON.parse(its);}catch{its=[];}
+        if(!Array.isArray(its))return;
+        its.forEach(it=>{
+          const name=it.n||it.nombre||it.producto||'—';
+          const cant=+(it.c||it.cantidad||it.cant||0);
+          const sub=+(it.sub||it.subtotal||it.importe||(+(it.p||it.precio||0)*cant));
+          agg[name]=agg[name]||{r:0,u:0}; agg[name].r+=sub; agg[name].u+=cant;
+        });
+      });
+      const total=Object.values(agg).reduce((s,v)=>s+v.r,0);
+      const rows=Object.entries(agg).sort((a,b)=>b[1].r-a[1].r).slice(0,100).map(([name,d])=>[name,String(d.u),fmtMoney(d.r),total>0?((d.r/total)*100).toFixed(1)+'%':'—']);
+      return { title:'Productos más vendidos', columns:['Producto','Unidades','Ingresos','% del total'], rows };
+    }
+
+    if (type === 'crecimiento') {
+      const MONTHS=window.PCD.MONTHS;
+      const rows=companies.map(c=>{
+        const yr=c.monthly.reduce((s,v)=>s+v,0);
+        const crec=c.monthly[10]>0?(((c.monthly[11]-c.monthly[10])/c.monthly[10])*100).toFixed(1)+'%':'—';
+        return [c.name,c.plan,...c.monthly.map(v=>fmtMoney(v)),fmtMoney(yr),crec];
+      }).sort((a,b)=>parseFloat(b[b.length-2].replace(/[^0-9.]/g,''))-parseFloat(a[a.length-2].replace(/[^0-9.]/g,'')));
+      return { title:'Crecimiento mensual (12m)', columns:['Empresa','Plan',...MONTHS,'Total año','Crec.'], rows };
+    }
+    return { title:'Reporte', columns:[], rows:[] };
+  };
+
+  // ── descarga CSV ──────────────────────────────────────────────────
+  const dlCSV = (data, fname) => {
+    const esc = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv = '\uFEFF'+[data.columns,...data.rows].map(r=>r.map(esc).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+    const a = document.createElement('a'); a.href=url; a.download=fname+'.csv'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  };
+
+  // ── descarga XLSX (lazy load SheetJS) ────────────────────────────
+  const dlXLSX = async (data, fname) => {
+    if (!window.XLSX) {
+      await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=res; s.onerror=()=>rej(new Error('No se cargó SheetJS')); document.head.appendChild(s); });
+    }
+    const wb=window.XLSX.utils.book_new();
+    const ws=window.XLSX.utils.aoa_to_sheet([data.columns,...data.rows]);
+    ws['!cols']=data.columns.map((_,i)=>({wch:Math.max(...[data.columns[i],...data.rows.map(r=>String(r[i]||''))].map(v=>v.length),8)}));
+    window.XLSX.utils.book_append_sheet(wb,ws,data.title.slice(0,31));
+    window.XLSX.writeFile(wb,fname+'.xlsx');
+  };
+
+  // ── descarga PDF (print dialog) ───────────────────────────────────
+  const dlPDF = (data, title, periodLabel) => {
+    const th=data.columns.map(c=>`<th>${c}</th>`).join('');
+    const tb=data.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+    const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${title}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Helvetica Neue',Arial,sans-serif;padding:28px;color:#111;font-size:11px}
+.hdr{border-bottom:2px solid #111;padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end}
+h1{font-size:18px;font-weight:700}.meta{color:#666;font-size:11px;text-align:right;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin-top:4px}th{background:#f5f5f5;border:1px solid #ddd;padding:5px 8px;font-weight:600;text-align:left;font-size:10px;text-transform:uppercase;color:#555}
+td{border:1px solid #eee;padding:5px 8px}tr:nth-child(even)td{background:#fafafa}
+.ft{margin-top:20px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px;display:flex;justify-content:space-between}
+@media print{body{padding:0}}</style></head><body>
+<div class="hdr"><div><h1>${title}</h1><div style="color:#666;margin-top:4px">Período: ${periodLabel} · ${data.rows.length} registros</div></div>
+<div class="meta">DistribuPanel<br>Generado: ${new Date().toLocaleString('es-AR')}</div></div>
+<table><thead><tr>${th}</tr></thead><tbody>${tb}</tbody></table>
+<div class="ft"><span>DistribuPanel · Panel de Control</span><span>${new Date().getFullYear()}</span></div>
+</body></html>`;
+    const w=window.open('','_blank','width=1000,height=700');
+    if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),400);}
+    else onToast('Habilitá ventanas emergentes en tu navegador para generar PDFs.');
+  };
+
+  // ── acción principal ──────────────────────────────────────────────
+  const handle = async (type, title, action) => {
+    setGenerating(type+action);
+    try {
+      const data = computeReport(type);
+      const { label: pl } = calcRange(range, customFrom, customTo);
+      const fname = title.toLowerCase().replace(/\s+/g,'_')+'_'+range.toLowerCase();
+      if (action === 'preview') {
+        setPreview({ title, data, period: pl });
+      } else {
+        if (fmt==='CSV') dlCSV(data, fname);
+        else if (fmt==='XLSX') await dlXLSX(data, fname);
+        else dlPDF(data, title, pl);
+        const entry={id:Date.now(),type,title,period:range,fmt,ts:new Date().toISOString(),rows:data.rows.length};
+        const nh=[entry,...history].slice(0,20);
+        setHistory(nh);
+        localStorage.setItem('pcd_report_hist_v1',JSON.stringify(nh));
+      }
+    } catch(e) { onToast('Error: '+e.message); }
+    finally { setGenerating(null); }
+  };
+
+  const reDownload = async (entry) => {
+    setGenerating('h'+entry.id);
+    try {
+      const data=computeReport(entry.type);
+      const {label:pl}=calcRange(entry.period,'','');
+      const fname=entry.title.toLowerCase().replace(/\s+/g,'_')+'_'+entry.period.toLowerCase();
+      if(entry.fmt==='CSV') dlCSV(data,fname);
+      else if(entry.fmt==='XLSX') await dlXLSX(data,fname);
+      else dlPDF(data,entry.title,pl);
+    } catch(e){onToast('Error: '+e.message);}
+    finally{setGenerating(null);}
+  };
+
+  const rel = ts => {
+    const d=Math.floor((Date.now()-new Date(ts).getTime())/86400000);
+    if(d===0)return'Hoy'; if(d===1)return'Ayer'; if(d<7)return'Hace '+d+' días'; if(d<14)return'Hace 1 semana'; return'Hace '+Math.floor(d/7)+' semanas';
+  };
+
+  const fmtBadge={PDF:'badge-red',XLSX:'badge-green',CSV:'badge-gray'};
+
+  const cards = [
+    {id:'ingresos', ico:'dollar',    color:'var(--accent)',  title:'Ingresos consolidados',    desc:'Ventas totales de todas las distribuidoras por periodo.',     kpi:fmtMoney(kpis.totalIngresos), lab:rangeLabel},
+    {id:'ventas',   ico:'trendUp',   color:'var(--green)',   title:'Ventas por empresa',        desc:'Desglose de ingresos y pedidos por cada distribuidora.',      kpi:String(kpis.activas),         lab:'empresas activas'},
+    {id:'suscripciones',ico:'card',  color:'var(--violet)',  title:'Estado de suscripciones',   desc:'Planes activos, en prueba, vencidos y MRR proyectado.',       kpi:fmtMoney(kpis.mrr),           lab:'MRR'},
+    {id:'cobranza', ico:'alert',     color:'var(--red)',     title:'Cobranza y morosidad',      desc:'Saldos pendientes y empresas con mora por días.',             kpi:fmtMoney(kpis.totalPend),     lab:'pendiente'},
+    {id:'productos',ico:'box',       color:'var(--amber)',   title:'Productos más vendidos',    desc:'Ranking de productos por ingresos y unidades en el período.', kpi:String(kpis.productos),       lab:'productos'},
+    {id:'crecimiento',ico:'bolt',    color:'var(--accent)',  title:'Crecimiento mensual',       desc:'Variación de ingresos mes a mes (últimos 12 meses).',         kpi:fmtPct(+kpis.crec),           lab:'vs mes ant.'},
+  ];
+
+  const isBusy = (id, action) => generating === id+action;
+
+  return (
+    <div className="fade-in grid" style={{ gap: 14 }}>
+
+      {/* ── Filtros ── */}
+      <div className="filters">
+        <Icon name="calendar" size={15} style={{ color:'var(--text-muted)' }} />
+        <div className="seg">
+          {['7d','30d','Trimestre','Año','Personalizado'].map(r=>(
+            <button key={r} className={range===r?'on':''} onClick={()=>setRange(r)}>{r}</button>
+          ))}
+        </div>
+        {range==='Personalizado' && <>
+          <input type="date" value={customFrom} onChange={e=>setCustomFrom(e.target.value)}
+            style={{background:'var(--bg-2,#1a1a24)',border:'1px solid var(--border,#2a2a3a)',borderRadius:6,color:'var(--text-1)',padding:'4px 8px',fontSize:12,outline:'none'}}/>
+          <span className="tiny dim">→</span>
+          <input type="date" value={customTo} onChange={e=>setCustomTo(e.target.value)}
+            style={{background:'var(--bg-2,#1a1a24)',border:'1px solid var(--border,#2a2a3a)',borderRadius:6,color:'var(--text-1)',padding:'4px 8px',fontSize:12,outline:'none'}}/>
+        </>}
+        <div className="topbar-spacer" style={{ flex:1 }}></div>
+        <span className="tiny dim">Formato</span>
+        <div className="seg">
+          {['PDF','XLSX','CSV'].map(f=>(
+            <button key={f} className={fmt===f?'on':''} onClick={()=>setFmt(f)}>{f}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Cards ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+        {cards.map(c=>(
+          <div className="panel" key={c.id} style={{ display:'flex', flexDirection:'column' }}>
+            <div className="panel-body" style={{ flex:1 }}>
+              <div className="between" style={{ alignItems:'flex-start' }}>
+                <div className="alert-ico" style={{ background:'color-mix(in srgb,'+c.color+' 14%,transparent)' }}>
+                  <Icon name={c.ico} size={16} style={{ color:c.color }} />
+                </div>
+                <div className="right">
+                  <div className="num" style={{ fontSize:16 }}>{c.kpi}</div>
+                  <div className="tiny dim">{c.lab}</div>
+                </div>
+              </div>
+              <div className="panel-title" style={{ marginTop:12 }}>{c.title}</div>
+              <div className="panel-sub" style={{ marginTop:4, lineHeight:1.5 }}>{c.desc}</div>
+            </div>
+            <div style={{ padding:14, borderTop:'1px solid var(--border-soft)', display:'flex', gap:8 }}>
+              <button className="btn btn-sm" style={{ flex:1, justifyContent:'center' }}
+                disabled={!!generating} onClick={()=>handle(c.id,c.title,'preview')}>
+                <Icon name="eye" size={13} /> Vista previa
+              </button>
+              <button className="btn btn-sm btn-primary" style={{ flex:1, justifyContent:'center' }}
+                disabled={!!generating} onClick={()=>handle(c.id,c.title,'dl')}>
+                {isBusy(c.id,'dl') ? '…' : <><Icon name="download" size={13} /> Descargar</>}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Historial ── */}
+      <div className="panel">
+        <div className="panel-head">
+          <Icon name="clock" size={15} style={{ color:'var(--text-muted)' }}/>
+          <div className="panel-title">Reportes generados recientemente</div>
+        </div>
+        {history.length===0
+          ? <div className="empty-state" style={{ minHeight:80 }}><div className="tiny dim">Todavía no generaste ningún reporte</div></div>
+          : <div className="table-wrap">
+              <table className="tbl">
+                <thead><tr><th>Reporte</th><th>Período</th><th>Formato</th><th>Registros</th><th>Generado</th><th className="r"></th></tr></thead>
+                <tbody>
+                  {history.map(h=>(
+                    <tr key={h.id} style={{ cursor:'default' }}>
+                      <td><div className="co-cell">
+                        <div className="alert-ico" style={{ width:26,height:26,background:'var(--panel-3)' }}><Icon name="report" size={14} style={{ color:'var(--text-muted)' }}/></div>
+                        <span className="co-name">{h.title}</span>
+                      </div></td>
+                      <td className="tiny dim">{h.period}</td>
+                      <td><span className={'badge '+(fmtBadge[h.fmt]||'badge-gray')}>{h.fmt}</span></td>
+                      <td className="mono muted tiny">{h.rows} filas</td>
+                      <td className="dim tiny">{rel(h.ts)}</td>
+                      <td className="r">
+                        <button className="icon-btn" title="Re-descargar" disabled={!!generating} onClick={()=>reDownload(h)}>
+                          <Icon name="download" size={14}/>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+        }
+      </div>
+
+      {/* ── Modal vista previa ── */}
+      {preview && (
+        <div onClick={()=>setPreview(null)}
+          style={{ position:'fixed',inset:0,background:'rgba(0,0,0,.75)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:20 }}>
+          <div style={{ background:'var(--bg-panel,#16162a)',borderRadius:14,width:'92vw',maxWidth:1100,maxHeight:'88vh',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 24px 60px rgba(0,0,0,.6)' }}
+            onClick={e=>e.stopPropagation()}>
+            <div className="panel-head" style={{ padding:'14px 20px',borderBottom:'1px solid var(--border)',flexShrink:0 }}>
+              <Icon name="eye" size={15} style={{ color:'var(--accent)' }}/>
+              <div className="panel-title">{preview.title}</div>
+              <span className="tiny dim" style={{ marginLeft:8 }}>{preview.period} · {preview.data.rows.length} registros</span>
+              <div className="spacer"></div>
+              <button className="btn btn-sm btn-primary"
+                onClick={()=>handle(cards.find(c=>c.title===preview.title)?.id,preview.title,'dl')}>
+                <Icon name="download" size={13}/> Descargar {fmt}
+              </button>
+              <button className="icon-btn" style={{ marginLeft:6 }} onClick={()=>setPreview(null)}><Icon name="x" size={16}/></button>
+            </div>
+            <div style={{ overflow:'auto',flex:1 }}>
+              <table className="tbl" style={{ minWidth:'100%' }}>
+                <thead><tr>{preview.data.columns.map(c=><th key={c} style={{ whiteSpace:'nowrap' }}>{c}</th>)}</tr></thead>
+                <tbody>
+                  {preview.data.rows.slice(0,200).map((r,i)=>(
+                    <tr key={i}>{r.map((c,j)=><td key={j}>{c}</td>)}</tr>
+                  ))}
+                </tbody>
+              </table>
+              {preview.data.rows.length>200 && (
+                <div className="tiny dim" style={{ padding:12,textAlign:'center' }}>
+                  Mostrando 200 de {preview.data.rows.length} filas. Descargá el archivo para ver todos.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ============================ MODAL: crear / editar ============================ */
+function CompanyModal({ initial, onClose, onSave }) {
+  const PLANS = window.PCD.PLANS;
+  const isEdit = !!initial;
+  const [f, setF] = useState(() => initial ? { ...initial } : {
+    name: '', city: '', contact: '', taxId: '', plan: 'estandar', status: 'prueba',
+    sucursales: 1, users: 3, ticket: 50, logo: '', codigo: '',
+  });
+  const [errs, setErrs] = useState({});
+  const [codigoManual, setCodigoManual] = useState(isEdit);
+  const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
+
+  const autoGenCodigo = (name) => {
+    if (!name) return '';
+    return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,20) || 'emp';
+  };
+
+  const onNameChange = (v) => {
+    set('name', v);
+    if (!codigoManual) set('codigo', autoGenCodigo(v));
+  };
+
+  const appURL = (cod) => cod
+    ? 'https://pagina-clientes-pedidos.vercel.app/?emp=' + cod
+    : '';
+
+  const copyLink = (cod) => {
+    navigator.clipboard?.writeText(appURL(cod)).then(() => alert('✅ Link copiado'));
+  };
+
+  const handleLogo = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 240;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) { const r = Math.min(MAX/w, MAX/h); w = Math.round(w*r); h = Math.round(h*r); }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        set('logo', cv.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!f.name.trim()) e.name = 'Requerido';
+    if (!f.codigo?.trim()) e.codigo = 'Requerido — es el ID de acceso a la app';
+    if (f.contact && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.contact)) e.contact = 'Email inválido';
+    setErrs(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const submit = () => { if (validate()) onSave(f, isEdit); };
+
+  return (
+    <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal">
+        <div className="modal-head">
+          <div style={{ width: 48, height: 48, borderRadius: 10, overflow: 'hidden', background: f.logo ? '#111' : (isEdit ? f.logoColor : 'linear-gradient(135deg,var(--accent),var(--accent-2))'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', border: '2px dashed transparent', position: 'relative' }}
+            title="Click para cambiar logo"
+            onClick={() => document.getElementById('logo-upload-input').click()}>
+            {f.logo
+              ? <img src={f.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              : <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{isEdit ? window.PCD.initials(f.name || '?') : <Icon name="plus" size={18} />}</span>}
+          </div>
+          <input id="logo-upload-input" type="file" accept="image/*" style={{ display: 'none' }}
+            onChange={(e) => { handleLogo(e.target.files[0]); e.target.value=''; }} />
+          <div style={{ flex: 1 }}>
+            <h3>{isEdit ? 'Editar empresa' : 'Nueva empresa'}</h3>
+            <p>{isEdit ? 'Actualiza los datos de la distribuidora.' : 'Registra una nueva distribuidora en el panel.'}</p>
+          </div>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+
+        <div className="modal-body">
+          <div className="form-grid">
+            <div className="field full" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ flexShrink: 0 }}>
+                {f.logo
+                  ? <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img src={f.logo} alt="logo" style={{ width: 72, height: 72, objectFit: 'contain', borderRadius: 10, border: '1px solid var(--border,#2a2a3a)', background: '#111' }} />
+                      <button title="Quitar logo" onClick={() => set('logo', '')}
+                        style={{ position: 'absolute', top: -6, right: -6, background: 'var(--red)', border: 'none', borderRadius: '50%', width: 18, height: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, lineHeight: 1 }}>✕</button>
+                    </div>
+                  : <div onClick={() => document.getElementById('logo-upload-input').click()}
+                      style={{ width: 72, height: 72, borderRadius: 10, border: '2px dashed var(--border,#2a2a3a)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: 4 }}>
+                      <Icon name="plus" size={16} style={{ color: 'var(--text-2)' }} />
+                      <span className="tiny dim" style={{ fontSize: 10 }}>Logo</span>
+                    </div>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <label>Nombre de la empresa <span className="req">*</span></label>
+              <input className={'input' + (errs.name ? ' err' : '')} value={f.name} onChange={(e) => onNameChange(e.target.value)} placeholder="Ej: Distribuidora Andina" autoFocus />
+              {errs.name && <span className="err-msg">{errs.name}</span>}
+              </div>
+            </div>
+            <div className="field">
+              <label>Ciudad / país</label>
+              <input className="input" value={f.city} onChange={(e) => set('city', e.target.value)} placeholder="Lima, PE" />
+            </div>
+            <div className="field">
+              <label>Email de contacto</label>
+              <input className={'input' + (errs.contact ? ' err' : '')} value={f.contact} onChange={(e) => set('contact', e.target.value)} placeholder="gerencia@empresa.com" />
+              {errs.contact && <span className="err-msg">{errs.contact}</span>}
+            </div>
+            <div className="field full">
+              <label>Identificación fiscal</label>
+              <input className="input" value={f.taxId} onChange={(e) => set('taxId', e.target.value)} placeholder="RUC / RFC / NIT" />
+            </div>
+
+            <div className="field full">
+              <label>ID de acceso (código único) <span className="req">*</span></label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input className={'input' + (errs.codigo ? ' err' : '')} value={f.codigo || ''} style={{ flex: 1, fontFamily: 'IBM Plex Mono, monospace', fontSize: 13 }}
+                  onChange={(e) => { setCodigoManual(true); set('codigo', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,'')); }}
+                  placeholder="ej: distribuidora-andina" />
+                {!codigoManual && <button type="button" onClick={() => { setCodigoManual(false); set('codigo', autoGenCodigo(f.name)); }}
+                  style={{ padding: '7px 10px', background: 'var(--panel-3)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: 'var(--text-2)', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  🔄 Auto
+                </button>}
+              </div>
+              {errs.codigo && <span className="err-msg">{errs.codigo}</span>}
+              {f.codigo && (
+                <div style={{ marginTop: 8, background: 'var(--panel-3)', border: '1px solid var(--border)', borderRadius: 7, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 10.5, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 5 }}>
+                    🔗 Link de acceso a la app
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <code style={{ flex: 1, fontSize: 11, color: 'var(--accent)', wordBreak: 'break-all', lineHeight: 1.5 }}>
+                      {appURL(f.codigo)}
+                    </code>
+                    <button type="button" onClick={() => copyLink(f.codigo)}
+                      style={{ flexShrink: 0, padding: '5px 10px', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)', borderRadius: 5, cursor: 'pointer', color: 'var(--accent)', fontSize: 11, fontWeight: 600, fontFamily: 'inherit' }}>
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="field full">
+              <label>Plan de suscripción</label>
+              <div className="seg-pick">
+                {Object.values(PLANS).map((p) => (
+                  <div key={p.id} className={'sp' + (f.plan === p.id ? ' on' : '')} onClick={() => set('plan', p.id)}>
+                    <div style={{ fontWeight: 600 }}>{p.name}</div>
+                    <div className="mono tiny dim">{fmtMoney(p.price)}/mes</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Estado</label>
+              <select className="input" value={f.status} onChange={(e) => set('status', e.target.value)}>
+                <option value="activa">Activa</option>
+                <option value="prueba">Prueba</option>
+                <option value="vencida">Vencida</option>
+                <option value="morosa">Morosa</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Sucursales</label>
+              <input className="input" type="number" min="1" value={f.sucursales} onChange={(e) => set('sucursales', +e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Usuarios</label>
+              <input className="input" type="number" min="1" value={f.users} onChange={(e) => set('users', +e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Ticket promedio ($)</label>
+              <input className="input" type="number" min="1" value={f.ticket} onChange={(e) => set('ticket', +e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-foot">
+          <button className="btn" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" onClick={submit}><Icon name="check" size={15} /> {isEdit ? 'Guardar cambios' : 'Crear empresa'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ MODAL: cambiar plan ============================ */
+function PlanModal({ co, onClose, onSave }) {
+  const PLANS = window.PCD.PLANS;
+  const [sel, setSel] = useState(co.plan);
+  return (
+    <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth: 640 }}>
+        <div className="modal-head">
+          <div style={{ flex: 1 }}>
+            <h3>Cambiar plan — {co.name}</h3>
+            <p>Plan actual: {PLANS[co.plan].name} · {fmtMoney(PLANS[co.plan].price)}/mes</p>
+          </div>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div className="modal-body">
+          <div className="plan-cards">
+            {Object.values(PLANS).map((p) => (
+              <div key={p.id} className={'plan-card' + (sel === p.id ? ' sel' : '')} onClick={() => setSel(p.id)}>
+                <div className="pc-check"><Icon name="check" size={18} /></div>
+                <div className="pc-name" style={{ color: p.color }}>{p.name}</div>
+                <div className="pc-price">{fmtMoney(p.price)}<small>/mes</small></div>
+                <div className="pc-feat">
+                  {p.feats.map((ft, i) => <span key={i}><Icon name="check" size={13} style={{ color: 'var(--green)' }} />{ft}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+          {sel !== co.plan && (
+            <div className="tiny" style={{ marginTop: 14, padding: '10px 12px', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)', borderRadius: 6, color: '#bcd6ff' }}>
+              {PLANS[sel].price > PLANS[co.plan].price ? 'Mejora' : 'Cambio'} de {PLANS[co.plan].name} a {PLANS[sel].name}: el MRR pasará de {fmtMoney(PLANS[co.plan].price)} a {fmtMoney(PLANS[sel].price)} por mes.
+            </div>
+          )}
+        </div>
+        <div className="modal-foot">
+          <button className="btn" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" disabled={sel === co.plan} style={sel === co.plan ? { opacity: 0.5, cursor: 'not-allowed' } : null} onClick={() => onSave(sel)}>
+            <Icon name="check" size={15} /> Confirmar cambio
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Suscripciones, Reportes, CompanyModal, PlanModal, UsuarioModal });
+
+/* ============================ USUARIO MODAL ============================ */
+function UsuarioModal({ empresa, initial, onClose, onSave }) {
+  const ROLE_OPTS = [
+    { value: 'admin',       label: 'Administrador' },
+    { value: 'vendedor',    label: 'Vendedor' },
+    { value: 'repartidor',  label: 'Repartidor' },
+  ];
+  const [f, setF] = useState({
+    uid:        initial?.uid        || '',
+    name:       initial?.name       || '',
+    pass:       initial?.pass       || '',
+    role:       initial?.role       || 'vendedor',
+    lista:      initial?.lista      || 'Clientes',
+    zona:       initial?.zona       || '',
+    telefono:   initial?.telefono   || '',
+    catalogo:   initial?.catalogo   !== false,
+    nota:       initial?.nota       || '',
+  });
+  const [err, setErr] = useState('');
+  const isEdit = !!initial?.id;
+
+  const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  const submit = () => {
+    if (!f.uid.trim()) { setErr('El código de acceso es obligatorio.'); return; }
+    if (!f.pass.trim()) { setErr('La contraseña es obligatoria.'); return; }
+    const payload = { ...f, empresa_id: empresa.id };
+    if (!payload.uid) return;
+    onSave(isEdit ? initial.id : null, payload);
+  };
+
+  return (
+    <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-title">{isEdit ? 'Editar usuario' : 'Nuevo usuario'} · {empresa.name}</div>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={16} /></button>
+        </div>
+        <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label className="field-label">Rol</label>
+            <div className="flex" style={{ gap: 8 }}>
+              {ROLE_OPTS.map((r) => (
+                <button key={r.value}
+                  className={'btn btn-sm' + (f.role === r.value ? ' btn-primary' : '')}
+                  onClick={() => set('role', r.value)} style={{ flex: 1, justifyContent: 'center' }}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="field-label">Código de acceso (uid) *</label>
+            <input className="field-input" value={f.uid} placeholder="ej: federico17"
+              onChange={(e) => set('uid', e.target.value)}
+              readOnly={isEdit} style={isEdit ? { opacity: 0.6 } : {}} />
+            <div className="tiny dim" style={{ marginTop: 3 }}>Con este código inicia sesión</div>
+          </div>
+
+          <div className="field">
+            <label className="field-label">Contraseña *</label>
+            <input className="field-input" value={f.pass} placeholder="••••••"
+              onChange={(e) => set('pass', e.target.value)} />
+          </div>
+
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label className="field-label">Nombre completo</label>
+            <input className="field-input" value={f.name} placeholder="Juan Pérez"
+              onChange={(e) => set('name', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label className="field-label">Zona</label>
+            <input className="field-input" value={f.zona} placeholder="Norte, Centro…"
+              onChange={(e) => set('zona', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label className="field-label">Teléfono</label>
+            <input className="field-input" value={f.telefono} placeholder="+54 9 …"
+              onChange={(e) => set('telefono', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label className="field-label">Acceso al catálogo</label>
+            <div className="flex" style={{ gap: 8, marginTop: 6 }}>
+              {[true, false].map((v) => (
+                <button key={String(v)}
+                  className={'btn btn-sm' + (f.catalogo === v ? ' btn-primary' : '')}
+                  onClick={() => set('catalogo', v)} style={{ flex: 1, justifyContent: 'center' }}>
+                  {v ? '● Activo' : '○ Bloqueado'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label className="field-label">Nota interna</label>
+            <input className="field-input" value={f.nota} placeholder="Opcional…"
+              onChange={(e) => set('nota', e.target.value)} />
+          </div>
+
+          {err && <div className="tiny" style={{ color: 'var(--red)', gridColumn: '1 / -1' }}>{err}</div>}
+        </div>
+        <div className="modal-foot">
+          <button className="btn" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" onClick={submit}>{isEdit ? 'Guardar cambios' : 'Crear usuario'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+/* App */
+/* ==========================================================
+   App — shell, navegación, estado, persistencia
+   ========================================================== */
+
+const LS_KEY = 'pcd_companies_v1';
+const LS_VIEW = 'pcd_view_v1';
+
+/* build a full company object from form inputs (for "create") */
+function buildFromForm(f, idSeed) {
+  const PLANS = window.PCD.PLANS, PRODUCTS = window.PCD.PRODUCTS, COLORS = window.PCD.LOGO_COLORS;
+  let s = (idSeed * 7919 + 13) % 2147483647; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const scale = f.plan === 'pro' ? 3.0 : f.plan === 'estandar' ? 1.4 : 0.6;
+  const isNeg = f.status === 'morosa' || f.status === 'vencida';
+  let level = (40000 + r() * 40000) * scale;
+  const trend = isNeg ? -0.03 - r() * 0.03 : 0.01 + r() * 0.04;
+  const monthly = [];
+  for (let m = 0; m < 12; m++) { level *= (1 + trend * (0.6 + r() * 0.8)); monthly.push(Math.round(level * (0.88 + r() * 0.24))); }
+  const revenueYear = monthly.reduce((a, b) => a + b, 0);
+  const thisMonth = monthly[11], prevMonth = monthly[10];
+  const growth = +(((thisMonth - prevMonth) / prevMonth) * 100).toFixed(1);
+  const daily = []; for (let d = 0; d < 30; d++) { const wk = (d % 7 === 5 || d % 7 === 6) ? 0.6 : 1; daily.push(Math.round((thisMonth / 30) * wk * (0.7 + r() * 0.7))); }
+  const ticket = f.ticket || 50;
+  const orders = Math.round(thisMonth / ticket), ordersPrev = Math.round(prevMonth / ticket);
+  const pool = [...PRODUCTS]; const chosen = [];
+  for (let p = 0; p < 5; p++) chosen.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  let rem = thisMonth;
+  const topProducts = chosen.map((name, k) => { const share = k === 4 ? rem : Math.round(rem * (0.45 - k * 0.06)); rem = Math.max(0, rem - share); return { name, revenue: share, units: Math.round(share / (ticket * (0.4 + r()))) }; }).sort((a, b) => b.revenue - a.revenue);
+  let pending = 0, overdueDays = 0;
+  if (f.status === 'morosa') { pending = Math.round(thisMonth * 0.4); overdueDays = 25; }
+  else if (f.status === 'vencida') { pending = PLANS[f.plan].price; overdueDays = 8; }
+
+  return {
+    ...f,
+    id: f.id || ('co_new_' + idSeed),
+    initials: window.PCD.initials(f.name || 'NN'),
+    logoColor: f.logoColor || COLORS[idSeed % COLORS.length],
+    since: f.since || '2026',
+    monthly, daily, revenueYear, thisMonth, prevMonth, growth, orders, ordersPrev,
+    topProducts, pending, overdueDays, usersTrend: 0,
+    renewal: f.status === 'vencida' ? 'Venció 12 May 2026' : f.status === 'prueba' ? 'Prueba hasta 28 Jun 2026' : '28 Jun 2026',
+    taxId: f.taxId || 'RUC ' + (20000000000 + idSeed * 137),
+  };
+}
+
+// ─── NEGOCIOS POS — Componentes ───────────────────────────
+const POS_BASE_URL = 'https://tudominio.com/POS_SaaS.html'; // cambia por tu URL real
+const PLAN_POS_PRECIO = 15000; // precio mensual ARS
+
+function daysLeft(venceISO) {
+  if (!venceISO) return null;
+  const diff = new Date(venceISO + 'T00:00:00') - new Date();
+  return Math.ceil(diff / 86400000);
+}
+
+function StatusPosBadge({ n }) {
+  const d = daysLeft(n.vence);
+  if (!n.activo) return <span className="badge badge-red"><span className="bdot"></span>Bloqueado</span>;
+  if (d === null) return <span className="badge badge-gray"><span className="bdot"></span>Sin venc.</span>;
+  if (d < 0)  return <span className="badge badge-red"><span className="bdot"></span>Vencido</span>;
+  if (d <= 7) return <span className="badge badge-amber"><span className="bdot"></span>Vence en {d}d</span>;
+  return <span className="badge badge-green"><span className="bdot"></span>Activo</span>;
+}
+
+function NegociosList({ negocios, query, loading, onOpen, onEdit, onDelete, onPago }) {
+  const [fil, setFil] = useState('todos');
+  const list = (negocios || []).filter(n => {
+    const q = (query || '').toLowerCase();
+    if (q && !n.nombre.toLowerCase().includes(q) && !(n.slug||'').includes(q)) return false;
+    if (fil === 'activos') return n.activo && daysLeft(n.vence) > 0;
+    if (fil === 'vencidos') { const d = daysLeft(n.vence); return d !== null && d < 0; }
+    if (fil === 'deuda') return n.pending > 0;
+    return true;
+  });
+  if (loading) return <div className="empty-state"><Icon name="refresh" size={24} /><div>Cargando...</div></div>;
+  return (
+    <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+      <div className="between">
+        <div className="seg">
+          {[['todos','Todos'],['activos','Activos'],['vencidos','Vencidos'],['deuda','Con deuda']].map(([v,l]) => (
+            <button key={v} className={fil===v?'on':''} onClick={() => setFil(v)}>{l}</button>
+          ))}
+        </div>
+        <span className="count-pill">{list.length} negocios</span>
+      </div>
+      {list.length === 0 ? (
+        <div className="empty-state"><Icon name="box" size={32} /><div>No hay negocios POS. Crea el primero.</div></div>
+      ) : (
+        <div className="panel">
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Negocio</th><th>Slug</th><th>Estado</th><th>Cajeros</th><th>Vence</th><th className="r">Deuda</th><th className="r">Acciones</th></tr></thead>
+              <tbody>
+                {list.map(n => {
+                  const d = daysLeft(n.vence);
+                  const url = POS_BASE_URL + '?n=' + n.slug;
+                  return (
+                    <tr key={n.id} onClick={() => onOpen(n.id)}>
+                      <td><div className="co-cell"><div className="co-logo" style={{ background:'#1d2b3a' }}>{(n.nombre||'?').slice(0,2).toUpperCase()}</div><div><div className="co-name">{n.nombre}</div><div className="co-meta">{n.ciudad||n.direccion||''}</div></div></div></td>
+                      <td><code style={{ fontSize:11, color:'var(--accent)', background:'var(--panel-3)', padding:'2px 6px', borderRadius:4 }}>{n.slug}</code></td>
+                      <td><StatusPosBadge n={n} /></td>
+                      <td><span className="num" style={{ color:'var(--text-2)' }}>{(n.cajeros||[]).length}</span></td>
+                      <td><span className="num" style={{ fontSize:12, color: d!==null&&d<0?'var(--red)':d!==null&&d<=7?'var(--amber)':'var(--text-2)' }}>{n.vence ? new Date(n.vence+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}) : '—'}</span></td>
+                      <td className="r"><span className="num" style={{ color: n.pending>0?'var(--red)':'var(--text-dim)' }}>{n.pending>0 ? '$'+n.pending.toLocaleString('es-AR') : '—'}</span></td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div className="row-actions">
+                          <button className="btn btn-sm" onClick={() => { navigator.clipboard && navigator.clipboard.writeText(url).then(()=>alert('Link copiado')); }} style={{ padding:'3px 8px' }}>Link</button>
+                          {n.pending > 0 && <button className="btn btn-sm" style={{ color:'var(--green)', borderColor:'rgba(52,211,156,0.3)', background:'var(--green-soft)', padding:'3px 8px' }} onClick={() => onPago(n)}>Pago</button>}
+                          <button className="icon-btn" onClick={() => onEdit(n)}><Icon name="edit" size={13} /></button>
+                          <button className="icon-btn" onClick={() => onDelete(n)}><Icon name="trash" size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NegocioDetalle({ negocio, onBack, onEdit, onDelete, onPago, onReload }) {
+  const [cajeros, setCajeros] = useState(negocio.cajeros || []);
+  const [editCajero, setEditCajero] = useState(null);
+  const url = POS_BASE_URL + '?n=' + negocio.slug;
+  const d = daysLeft(negocio.vence);
+
+  useEffect(() => {
+    window.PCD.fetchCajeros(negocio.id).then(setCajeros);
+  }, [negocio.id]);
+
+  const delCajero = async (id) => {
+    if (!window.confirm('Eliminar cajero?')) return;
+    await window.PCD.deleteCajero(id);
+    setCajeros(cs => cs.filter(c => c.id !== id));
+    onReload();
+  };
+
+  return (
+    <div className="fade-in grid" style={{ gap:16 }}>
+      <div className="between">
+        <button className="btn btn-ghost btn-sm" onClick={onBack}><Icon name="chevR" size={15} style={{ transform:'rotate(180deg)' }} /> Negocios POS</button>
+        <div className="flex" style={{ gap:8 }}>
+          <button className="btn" onClick={() => onEdit(negocio)}><Icon name="edit" size={14} /> Editar</button>
+          <button className="btn btn-ghost btn-sm" style={{ color:'var(--red)' }} onClick={() => onDelete(negocio)}><Icon name="trash" size={14} /></button>
+        </div>
+      </div>
+      <div className="detail-head">
+        <div className="detail-logo" style={{ background:'#1d2b3a' }}>{(negocio.nombre||'?').slice(0,2).toUpperCase()}</div>
+        <div className="detail-meta" style={{ flex:1 }}>
+          <h1>{negocio.nombre}</h1>
+          <div className="d-sub"><span>{negocio.cuit||'Sin CUIT'}</span><span className="sep-dot"></span><span>{negocio.direccion||'Sin dirección'}</span></div>
+          <div style={{ marginTop:10, display:'flex', alignItems:'center', gap:8 }}>
+            <code style={{ fontSize:11, color:'var(--accent)', background:'var(--panel-3)', padding:'4px 10px', borderRadius:5 }}>{url}</code>
+            <button onClick={() => navigator.clipboard && navigator.clipboard.writeText(url).then(()=>alert('Link copiado'))} style={{ padding:'3px 10px', background:'var(--accent-soft)', border:'1px solid var(--accent-line)', borderRadius:5, cursor:'pointer', color:'var(--accent)', fontSize:11, fontWeight:600, fontFamily:'inherit' }}>Copiar</button>
+            <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:'var(--text-muted)', textDecoration:'none' }}>Abrir</a>
+          </div>
+        </div>
+      </div>
+      <div className="stat-grid">
+        <div className="stat"><div className="stat-lab">Estado</div><div style={{ marginTop:7 }}><StatusPosBadge n={negocio} /></div></div>
+        <div className="stat"><div className="stat-lab">Vencimiento</div><div className="stat-val" style={{ fontSize:15, color: d!==null&&d<0?'var(--red)':'var(--text)' }}>{negocio.vence ? new Date(negocio.vence+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div>{d!==null&&<div className="stat-foot" style={{ color: d<0?'var(--red)':d<=7?'var(--amber)':'var(--text-dim)' }}>{d>=0?'Faltan '+d+' días':'Vencido hace '+Math.abs(d)+' días'}</div>}</div>
+        <div className="stat"><div className="stat-lab">Saldo pendiente</div><div className="stat-val num" style={{ color: negocio.pending>0?'var(--red)':'var(--green)' }}>${(negocio.pending||0).toLocaleString('es-AR')}</div>{negocio.pending>0&&<button className="btn btn-sm" style={{ marginTop:8, background:'var(--green-soft)', color:'var(--green)', border:'1px solid rgba(52,211,156,0.3)' }} onClick={() => onPago(negocio)}>Confirmar pago</button>}</div>
+        <div className="stat"><div className="stat-lab">Plan mensual</div><div className="stat-val num" style={{ fontSize:17 }}>${PLAN_POS_PRECIO.toLocaleString('es-AR')}</div><div className="stat-foot">Unico plan POS</div></div>
+      </div>
+      <div className="panel">
+        <div className="panel-head"><Icon name="users" size={15} style={{ color:'var(--accent)' }} /><div className="panel-title">Cajeros</div><span className="badge badge-gray" style={{ marginLeft:8 }}>{cajeros.length}</span><div className="spacer"></div><button className="btn btn-sm" onClick={() => setEditCajero({})}><Icon name="plus" size={12} /> Nuevo cajero</button></div>
+        {cajeros.length === 0 ? <div className="empty-state" style={{ minHeight:80 }}><div>Sin cajeros. Agrega el primero.</div></div> : (
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Nombre</th><th>Rol</th><th>PIN</th><th>Inicial</th><th className="r">Acciones</th></tr></thead><tbody>
+            {cajeros.map(c => (
+              <tr key={c.id}>
+                <td><span className="co-name">{c.nombre}</span></td>
+                <td><span className={'badge '+(c.rol==='Administrador'?'badge-violet':'badge-blue')}>{c.rol}</span></td>
+                <td><code style={{ fontSize:12, color:'var(--text-2)', background:'var(--panel-3)', padding:'2px 6px', borderRadius:4 }}>{"•".repeat(4)}</code></td>
+                <td><span style={{ fontFamily:'var(--mono)', fontWeight:600 }}>{c.inicial}</span></td>
+                <td><div className="row-actions"><button className="icon-btn" onClick={() => setEditCajero(c)}><Icon name="edit" size={13} /></button><button className="icon-btn" onClick={() => delCajero(c.id)}><Icon name="trash" size={13} /></button></div></td>
+              </tr>
+            ))}
+          </tbody></table></div>
+        )}
+      </div>
+      {editCajero !== null && <CajeroPosModal negocio={negocio} cajero={editCajero.id?editCajero:null} onClose={() => setEditCajero(null)} onSave={async (id,data) => { try { if(id) await window.PCD.updateCajero(id,data); else await window.PCD.insertCajero(negocio.id,data); const updated=await window.PCD.fetchCajeros(negocio.id); setCajeros(updated); setEditCajero(null); onReload(); } catch(e){alert('Error: '+e.message);} }} />}
+    </div>
+  );
+}
+
+function NegociosCobros({ negocios, onOpen, onPago }) {
+  const pend = (negocios||[]).filter(n => n.pending>0 || (daysLeft(n.vence)!==null && daysLeft(n.vence)<=7));
+  return (
+    <div className="fade-in" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+      <div className="panel">
+        <div className="panel-head"><Icon name="alert" size={15} style={{ color:'var(--amber)' }} /><div className="panel-title">Negocios con deuda o por vencer</div><span className="badge badge-amber" style={{ marginLeft:8 }}>{pend.length}</span></div>
+        {pend.length===0 ? <div className="empty-state" style={{ minHeight:100 }}><Icon name="check" size={28} /><div>Todo al dia</div></div> : (
+          <div className="table-wrap"><table className="tbl"><thead><tr><th>Negocio</th><th>Estado</th><th>Vence</th><th className="r">Deuda</th><th className="r">Accion</th></tr></thead><tbody>
+            {pend.map(n => {
+              const d = daysLeft(n.vence);
+              const tel = (n.telefono||'').replace(/[^0-9]/g,'');
+              const msg = 'Hola '+n.nombre+'. Tenes un saldo de $'+n.pending.toLocaleString('es-AR')+' pendiente en tu suscripcion POS. Vencimiento: '+(n.vence||'—')+'. Por favor regulariza el pago.';
+              return (
+                <tr key={n.id} onClick={() => onOpen(n.id)}>
+                  <td><span className="co-name">{n.nombre}</span></td>
+                  <td><StatusPosBadge n={n} /></td>
+                  <td><span className="num" style={{ fontSize:12 }}>{n.vence ? new Date(n.vence+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}) : '—'}{d!==null&&' ('+( d>=0?'en '+d+'d':'vencio')+')'}</span></td>
+                  <td className="r num" style={{ color:'var(--red)', fontWeight:600 }}>${(n.pending||0).toLocaleString('es-AR')}</td>
+                  <td onClick={e=>e.stopPropagation()}>
+                    <div className="row-actions">
+                      <button className="btn btn-sm" style={{ color:'var(--green)', borderColor:'rgba(52,211,156,0.3)', background:'var(--green-soft)' }} onClick={() => onPago(n)}>Cobrado</button>
+                      {tel&&<button className="icon-btn" title="WhatsApp" onClick={() => window.open('https://wa.me/549'+tel+'?text='+encodeURIComponent(msg),'_blank')}><Icon name="send" size={13} /></button>}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody></table></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NegocioPosModal({ initial, onClose, onSave }) {
+  const isEdit = !!(initial && initial.id);
+  const [nombre, setNombre] = useState(initial&&initial.nombre||''  );
+  const [slug, setSlug]     = useState(initial&&initial.slug||''    );
+  const [cuit, setCuit]     = useState(initial&&initial.cuit||''    );
+  const [dir, setDir]       = useState(initial&&initial.direccion||'');
+  const [cont, setCont]     = useState(initial&&initial.contacto||'' );
+  const [tel, setTel]       = useState(initial&&initial.telefono||'' );
+  const [footer, setFooter] = useState(initial&&initial.ticket_footer||'Gracias por su compra');
+  const [vence, setVence]   = useState(initial&&initial.vence||'');
+  const [saldo, setSaldo]   = useState(initial&&initial.pending||0);
+  const [estado, setEstado] = useState(initial&&initial.estado||'activo');
+  const [err, setErr]       = useState('');
+
+  const autoSlug = n => {
+    setNombre(n);
+    if (!isEdit) setSlug(n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+  };
+
+  const submit = () => {
+    if (!nombre.trim()) { setErr('Nombre obligatorio'); return; }
+    if (!slug.trim())   { setErr('Slug obligatorio');   return; }
+    if (!/^[a-z0-9-]+$/.test(slug)) { setErr('Slug solo letras minusculas, numeros y guiones'); return; }
+    onSave(isEdit, { id: initial&&initial.id, nombre:nombre.trim(), slug, cuit, direccion:dir, contacto:cont, telefono:tel, ticket_footer:footer, vence:vence||null, saldo_pendiente:Number(saldo)||0, estado, activo: estado==='activo' });
+  };
+
+  return (
+    <div className="overlay" onMouseDown={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-head"><h3>{isEdit?'Editar negocio POS':'Nuevo negocio POS'}</h3><div style={{ marginLeft:'auto', display:'flex', gap:8 }}><span className="badge badge-blue plan-tag">Plan POS</span><button className="icon-btn" onClick={onClose}><Icon name="x" size={16} /></button></div></div>
+        <div className="modal-body">
+          <div className="form-grid">
+            <div className="field full"><label>Nombre <span className="req">*</span></label><input className="input" value={nombre} onChange={e=>autoSlug(e.target.value)} placeholder="Kiosco Central" /></div>
+            <div className="field"><label>Slug (URL) <span className="req">*</span></label><input className="input" style={{ fontFamily:'var(--mono)' }} value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))} placeholder="kiosco-central" readOnly={isEdit} /><div className="hint">?n={slug||'slug'}</div></div>
+            <div className="field"><label>CUIT</label><input className="input" style={{ fontFamily:'var(--mono)' }} value={cuit} onChange={e=>setCuit(e.target.value)} placeholder="30-71234567-8" /></div>
+            <div className="field full"><label>Direccion</label><input className="input" value={dir} onChange={e=>setDir(e.target.value)} /></div>
+            <div className="field"><label>Contacto</label><input className="input" value={cont} onChange={e=>setCont(e.target.value)} /></div>
+            <div className="field"><label>Telefono WhatsApp</label><input className="input" style={{ fontFamily:'var(--mono)' }} value={tel} onChange={e=>setTel(e.target.value)} /></div>
+            <div className="field"><label>Vencimiento</label><input className="input" type="date" value={vence} onChange={e=>setVence(e.target.value)} /></div>
+            <div className="field"><label>Saldo pendiente ($)</label><input className="input" style={{ fontFamily:'var(--mono)' }} type="number" value={saldo} onChange={e=>setSaldo(e.target.value)} /></div>
+            <div className="field full"><label>Pie de ticket</label><input className="input" value={footer} onChange={e=>setFooter(e.target.value)} /></div>
+            <div className="field full"><label>Estado</label><div className="seg-pick">{[['activo','Activo'],['suspendido','Suspendido'],['vencido','Vencido']].map(([v,l])=><div key={v} className={'sp'+(estado===v?' on':'')} onClick={()=>setEstado(v)}>{l}</div>)}</div></div>
+          </div>
+          {err&&<div style={{ color:'var(--red)', fontSize:12, marginTop:10 }}>{err}</div>}
+        </div>
+        <div className="modal-foot"><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={submit}><Icon name="check" size={14} /> {isEdit?'Guardar':'Crear negocio'}</button></div>
+      </div>
+    </div>
+  );
+}
+
+function CajeroPosModal({ negocio, cajero, onClose, onSave }) {
+  const [nombre, setNombre] = useState(cajero&&cajero.nombre||'');
+  const [pin, setPin]       = useState(cajero&&cajero.pin||'');
+  const [rol, setRol]       = useState(cajero&&cajero.rol||'Cajero');
+  const [inic, setInic]     = useState(cajero&&cajero.inicial||'');
+  const [err, setErr]       = useState('');
+
+  const autoInic = n => { setNombre(n); if(!cajero) setInic(n.trim().split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()); };
+
+  const submit = () => {
+    if (!nombre.trim())     { setErr('Nombre obligatorio'); return; }
+    if (!/^\d{4}$/.test(pin)) { setErr('PIN debe ser 4 digitos');  return; }
+    onSave(cajero&&cajero.id||null, { nombre:nombre.trim(), pin, rol, inicial:inic||nombre[0].toUpperCase() });
+  };
+
+  return (
+    <div className="overlay" onMouseDown={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth:440 }} onClick={e=>e.stopPropagation()}>
+        <div className="modal-head"><h3>{cajero?'Editar cajero':'Nuevo cajero'} — {negocio.nombre}</h3><button className="icon-btn" style={{ marginLeft:'auto' }} onClick={onClose}><Icon name="x" size={16} /></button></div>
+        <div className="modal-body">
+          <div className="form-grid">
+            <div className="field full"><label>Nombre <span className="req">*</span></label><input className="input" value={nombre} onChange={e=>autoInic(e.target.value)} placeholder="Lucia" /></div>
+            <div className="field"><label>PIN 4 digitos <span className="req">*</span></label><input className="input" style={{ fontFamily:'var(--mono)', letterSpacing:6 }} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="1234" maxLength={4} /></div>
+            <div className="field"><label>Inicial</label><input className="input" style={{ fontFamily:'var(--mono)' }} value={inic} onChange={e=>setInic(e.target.value.slice(0,2).toUpperCase())} placeholder="L" maxLength={2} /></div>
+            <div className="field full"><label>Rol</label><div className="seg-pick">{['Cajero','Administrador'].map(r=><div key={r} className={'sp'+(rol===r?' on':'')} onClick={()=>setRol(r)}>{r}</div>)}</div></div>
+          </div>
+          {err&&<div style={{ color:'var(--red)', fontSize:12, marginTop:10 }}>{err}</div>}
+        </div>
+        <div className="modal-foot"><button className="btn" onClick={onClose}>Cancelar</button><button className="btn btn-primary" onClick={submit}><Icon name="check" size={14} /> Guardar</button></div>
+      </div>
+    </div>
+  );
+}
+
+
+function App() {
+  const [companies, setCompanies] = useState([]);
+  const [negocios, setNegocios] = useState([]);
+  const [negLoading, setNegLoading] = useState(false);
+  const [selNegId, setSelNegId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [rtStatus, setRtStatus] = useState('connecting'); // 'connecting' | 'live' | 'error'
+  const [planPrices, setPlanPrices] = useState(() => {
+    const P = window.PCD.PLANS;
+    return { base: P.base?.price||0, estandar: P.estandar?.price||0, pro: P.pro?.price||0 };
+  });
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const debRef = useRef(null);
+  const [view, setView] = useState(() => localStorage.getItem(LS_VIEW) || 'dashboard');
+  const [selId, setSelId] = useState(null);
+  const [query, setQuery] = useState('');
+  const [modal, setModal] = useState(null);   // {type:'company', initial} | {type:'plan', co}
+  const [toasts, setToasts] = useState([]);
+  const idCounter = useRef(1000);
+
+  const reloadSilent = async () => {
+    try { const data = await window.PCD.fetchAll(); setCompanies(data); setLastUpdate(new Date()); }
+    catch (e) { console.warn('Realtime reload:', e.message); }
+  };
+  const loadNegocios = async () => {
+    setNegLoading(true);
+    try { const data = await window.PCD.fetchNegocios(); setNegocios(data); } catch(e) { console.warn(e); }
+    finally { setNegLoading(false); }
+  };
+
+  const reload = async () => {
+    try { setLoadError(null); const data = await window.PCD.fetchAll(); setCompanies(data); setLastUpdate(new Date()); }
+    catch (e) { setLoadError(e.message || String(e)); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { reload(); loadNegocios(); }, []);
+
+  useEffect(() => {
+    let unsub = null;
+    try {
+      unsub = window.PCD.subscribeRealtime(
+        () => {
+          if (debRef.current) clearTimeout(debRef.current);
+          debRef.current = setTimeout(reloadSilent, 400);
+        },
+        (status) => {
+          if (status === 'SUBSCRIBED') setRtStatus('live');
+          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setRtStatus('error');
+          else setRtStatus('connecting');
+        }
+      );
+    } catch (e) { console.warn('Realtime setup failed:', e.message); setRtStatus('error'); }
+    return () => {
+      if (unsub) unsub();
+      if (debRef.current) clearTimeout(debRef.current);
+    };
+  }, []);
+
+  useEffect(() => { localStorage.setItem(LS_VIEW, view); }, [view]);
+
+  const toast = (msg) => {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, msg }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200);
+  };
+
+  const selCo = companies.find((c) => c.id === selId);
+  const selNeg = (negocios||[]).find(n => n.id === selNegId) || null;
+
+  const openCompany = (id) => { setSelId(id); setView('empresa'); document.querySelector('.content').scrollTop = 0; };
+  const goEmpresas = () => { setView('empresas'); };
+  const openNegocio = (id) => { setSelNegId(id); setView('negocio'); document.querySelector('.content').scrollTop = 0; };
+  const goNegocios = () => { setView('negocios'); };
+
+  const saveNegocio = async (isEdit, data) => {
+    setModal(null);
+    try {
+      if (isEdit) {
+        const { id, ...rest } = data;
+        await window.PCD.updateNegocio(id, rest);
+        toast('Negocio actualizado');
+      } else {
+        const { id, ...rest } = data;
+        await window.PCD.insertNegocio(rest);
+        toast('Negocio creado');
+      }
+      await loadNegocios();
+    } catch(e) { toast('Error: ' + e.message); }
+  };
+  const removeNegocio = async (n) => {
+    if (!window.confirm('Eliminar "' + n.nombre + '"?')) return;
+    try { await window.PCD.deleteNegocio(n.id); if(selNegId===n.id){setSelNegId(null);setView('negocios');} toast('Eliminado'); await loadNegocios(); } catch(e){ toast('Error: '+e.message); }
+  };
+  const pagoNegocio = async (n) => {
+    if (!window.confirm('Confirmar pago de "' + n.nombre + '"?')) return;
+    try {
+      const base = n.vence ? new Date(n.vence+'T00:00:00') : new Date();
+      const next = new Date(Math.max(base.getTime(), Date.now()));
+      next.setDate(next.getDate()+30);
+      await window.PCD.updateNegocio(n.id, { vence:next.toISOString().slice(0,10), estado:'activo', activo:true, saldo_pendiente:0 });
+      toast('Pago confirmado'); await loadNegocios();
+    } catch(e){ toast('Error: '+e.message); }
+  };
+
+  const saveCompany = async (f, isEdit) => {
+    setModal(null);
+    try {
+      if (isEdit) { await window.PCD.updateCompany(f); toast('Cambios guardados en “' + f.name + '”'); }
+      else { await window.PCD.insertCompany(f); toast('Empresa “' + f.name + '” creada'); }
+      await reload();
+    } catch (e) { toast('Error al guardar: ' + e.message); }
+  };
+
+  const changePlan = async (newPlan) => {
+    const co = modal.co; setModal(null);
+    try { await window.PCD.updatePlan(co.id, newPlan); toast('Plan de “' + co.name + '” actualizado a ' + window.PCD.PLANS[newPlan].name); await reload(); }
+    catch (e) { toast('Error al cambiar plan: ' + e.message); }
+  };
+
+  const removeCompany = async (co) => {
+    if (!window.confirm('¿Eliminar “' + co.name + '”? Esta acción no se puede deshacer.')) return;
+    try { await window.PCD.deleteCompany(co.id); if (selId === co.id) { setSelId(null); setView('empresas'); } toast('Empresa “' + co.name + '” eliminada'); await reload(); }
+    catch (e) { toast('Error al eliminar: ' + e.message); }
+  };
+  const markPaid = async (co) => {
+    if (!window.confirm('¿Marcar como saldados todos los saldos de cuenta corriente de “' + co.name + '”? Pone los saldos en 0.')) return;
+    try { await window.PCD.markPaid(co.id); toast('Saldos de “' + co.name + '” marcados como cobrados'); await reload(); }
+    catch (e) { toast('Error: ' + e.message); }
+  };
+  const saveUsuario = async (userId, data) => {
+    setModal(null);
+    try {
+      if (userId) { await window.PCD.updateUsuario(userId, data); toast('Usuario actualizado'); }
+      else { await window.PCD.insertUsuario(data); toast('Usuario ' + data.uid + ' creado'); }
+      await reloadSilent();
+    } catch (e) { toast('Error: ' + e.message); }
+  };
+
+  const removeUsuario = async (u) => {
+    if (!window.confirm('¿Eliminar al usuario "' + (u.name || u.uid) + '"?')) return;
+    try { await window.PCD.deleteUsuario(u.id); toast('Usuario eliminado'); await reloadSilent(); }
+    catch (e) { toast('Error: ' + e.message); }
+  };
+
+  const updatePlanPrice = (planKey, price) => {
+    const v = Math.max(0, +price || 0);
+    window.PCD.savePlanPrice(planKey, v);
+    setPlanPrices((prev) => ({ ...prev, [planKey]: v }));
+  };
+
+  const setVence = async (co, fecha) => {
+    try { await window.PCD.setVence(co.id, fecha); await reloadSilent(); }
+    catch (e) { toast('Error al guardar fecha: ' + e.message); }
+  };
+
+  const confirmPayment = async (co) => {
+    if (!window.confirm('¿Confirmar cobro de "' + co.name + '"? Se extiende 30 días y se reactiva el acceso.')) return;
+    try { await window.PCD.confirmPayment(co.id, co.renewalISO); toast('Pago confirmado — acceso reactivado y fecha extendida 30 días'); await reloadSilent(); }
+    catch (e) { toast('Error: ' + e.message); }
+  };
+
+  const remind = (co) => {
+    const PLANS = window.PCD.PLANS;
+    const plan = PLANS[co.plan] || { name: co.plan };
+    const dias = window.PCD.daysUntilVence(co.renewalISO);
+    const tel = co.contact ? co.contact.replace(/[^0-9]/g,'') : '';
+    let msg = '👋 Hola *' + co.name + '*\n\n';
+    if (co.pending > 0) {
+      msg += '💰 Tiene un saldo pendiente de *$' + co.pending.toLocaleString('es-AR') + '* en su suscripción CoreDistri Central.\n';
+      if (co.overdueDays > 0) msg += '⏰ Lleva *' + co.overdueDays + ' días* sin regularizar.\n';
+    }
+    if (dias !== null && dias <= 7) {
+      msg += '📅 Su suscripción *' + plan.name + '* vence ' + (dias === 0 ? 'hoy' : 'en ' + dias + ' días') + '.\n';
+    }
+    msg += '\nPor favor regularice el pago para mantener el acceso sin interrupciones.\n\n_CoreDistri — Sistema de gestión mayorista_';
+    if (tel) {
+      window.open('https://wa.me/549' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+    } else if (co.contact && co.contact.includes('@')) {
+      const subject = encodeURIComponent('Recordatorio de suscripción — ' + co.name);
+      window.location.href = 'mailto:' + co.contact + '?subject=' + subject + '&body=' + encodeURIComponent(msg);
+    } else {
+      toast('Sin teléfono ni email — editá la empresa para agregar un contacto');
+    }
+  };
+
+  const cobrosCount = companies.filter((c) => c.pending > 0).length;
+  const negPendCount = (negocios||[]).filter(n => n.pending>0).length;
+  const NAV_D = [
+    { id: 'dashboard', label: 'Dashboard', ico: 'dashboard' },
+    { id: 'empresas', label: 'Distribuidoras', ico: 'building', badge: companies.length },
+    { id: 'suscripciones', label: 'Suscripciones', ico: 'card' },
+    { id: 'cobros', label: 'Cobros', ico: 'currency', badge: cobrosCount || null },
+    { id: 'reportes', label: 'Reportes', ico: 'report' },
+  ];
+  const NAV_P = [
+    { id: 'negocios', label: 'Negocios POS', ico: 'cart', badge: (negocios||[]).length || null },
+    { id: 'negocios_cobros', label: 'Cobros POS', ico: 'currency', badge: negPendCount || null },
+  ];
+  const TITLES = { dashboard: 'Dashboard', empresas: 'Distribuidoras', empresa: selCo ? selCo.name : 'Distribuidora', suscripciones: 'Suscripciones', cobros: 'Cobros Distribuidoras', reportes: 'Reportes', negocios: 'Negocios POS', negocio: selNeg ? selNeg.nombre : 'Negocio POS', negocios_cobros: 'Cobros POS' };
+  const alertsCount = companies.filter((c) => c.status === 'morosa' || c.status === 'vencida').length + (negocios||[]).filter(n=>n.estado==='vencido'||n.pending>0).length;
+
+  return (
+    <div className="app">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">D</div>
+          <div>
+            <div className="brand-name">Distribu<span style={{ color: 'var(--accent)' }}>Panel</span></div>
+            <div className="brand-sub">Control central</div>
+          </div>
+        </div>
+        <nav className="nav">
+          <div className="nav-label">Distribuidoras</div>
+          {NAV_D.map((n) => (
+            <div key={n.id} className={'nav-item' + ((view === n.id || (view === 'empresa' && n.id === 'empresas')) ? ' active' : '')}
+              onClick={() => { setView(n.id); if (n.id !== 'empresas') setQuery(''); }}>
+              <Icon name={n.ico} className="nav-ico" size={16} />
+              <span>{n.label}</span>
+              {n.badge != null && <span className="nav-badge">{n.badge}</span>}
+            </div>
+          ))}
+          <div className="nav-label" style={{ marginTop:6 }}>Negocios POS</div>
+          {NAV_P.map((n) => (
+            <div key={n.id} className={'nav-item' + ((view === n.id || (view === 'negocio' && n.id === 'negocios')) ? ' active' : '')}
+              onClick={() => setView(n.id)}>
+              <Icon name={n.ico} className="nav-ico" size={16} />
+              <span>{n.label}</span>
+              {n.badge != null && <span className="nav-badge">{n.badge}</span>}
+            </div>
+          ))}
+          <div className="nav-label" style={{ marginTop:6 }}>Accesos rapidos</div>
+          <div className="nav-item" onClick={() => setModal({ type: 'company', initial: null })}>
+            <Icon name="plus" className="nav-ico" size={16} /><span>Nueva distribuidora</span>
+          </div>
+          <div className="nav-item" onClick={() => setModal({ type: 'negocio_pos', initial: null })}>
+            <Icon name="plus" className="nav-ico" size={16} /><span>Nuevo negocio POS</span>
+          </div>
+        </nav>
+        <div className="sidebar-foot">
+          <div className="admin-card">
+            <div className="admin-av">AD</div>
+            <div className="admin-meta">
+              <div className="admin-name">Administrador</div>
+              {(() => {
+                const dotStyle = rtStatus === 'live'
+                  ? {}
+                  : rtStatus === 'error'
+                  ? { background: 'var(--red)', boxShadow: '0 0 0 2px rgba(220,50,50,0.22)' }
+                  : { background: 'var(--amber, #f5b13d)', boxShadow: '0 0 0 2px rgba(240,180,60,0.22)' };
+                const label = rtStatus === 'live' ? 'En vivo' : rtStatus === 'error' ? 'Sin conexión' : 'Conectando…';
+                return <div className="admin-role"><span className="dot-live" style={dotStyle}></span> {label}</div>;
+              })()}
+            </div>
+            <button className="icon-btn" style={{ marginLeft: 'auto', width: 26, height: 26 }} title="Cerrar sesión"><Icon name="logout" size={14} /></button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="main">
+        <header className="topbar">
+          {view === 'empresa' ? (
+            <div className="crumbs">
+              <span className="c-dim link" onClick={goEmpresas}>Distribuidoras</span>
+              <span className="c-sep"><Icon name="chevR" size={13} /></span>
+              <span className="page-title">{selCo ? selCo.name : ''}</span>
+            </div>
+          ) : view === 'negocio' ? (
+            <div className="crumbs">
+              <span className="c-dim link" onClick={goNegocios}>Negocios POS</span>
+              <span className="c-sep"><Icon name="chevR" size={13} /></span>
+              <span className="page-title">{selNeg ? selNeg.nombre : ''}</span>
+            </div>
+          ) : (
+            <div className="page-title">{TITLES[view] || view}</div>
+          )}
+          <div className="topbar-spacer"></div>
+          <div className="search">
+            <Icon name="search" size={15} />
+            <input placeholder="Buscar empresa…" value={view === 'empresas' ? query : ''}
+              onFocus={() => { if (view !== 'empresas') setView('empresas'); }}
+              onChange={(e) => { setView('empresas'); setQuery(e.target.value); }} />
+            <span className="kbd">⌘K</span>
+          </div>
+          {lastUpdate && (
+            <span className="tiny" style={{ color: 'var(--text-2)', fontSize: 11, whiteSpace: 'nowrap' }}>
+              {lastUpdate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <button className="icon-btn" title="Notificaciones" style={{ position: 'relative' }} onClick={() => setView('dashboard')}>
+            <Icon name="bell" size={15} />
+            {alertsCount > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: 'var(--red)' }}></span>}
+          </button>
+          {(view==='empresas'||view==='empresa'||view==='dashboard') && <button className="btn btn-primary" onClick={() => setModal({ type: 'company', initial: null })}><Icon name="plus" size={15} /> Nueva distribuidora</button>}
+          {(view==='negocios'||view==='negocio') && <button className="btn btn-primary" onClick={() => setModal({ type: 'negocio_pos', initial: null })}><Icon name="plus" size={15} /> Nuevo negocio POS</button>}
+        </header>
+
+        <div className="content">
+          <div className="content-inner">
+            {loading && <div className="empty-state" style={{ minHeight: 380 }}><Icon name="refresh" size={28} /><div>Cargando datos desde Supabase…</div></div>}
+            {!loading && loadError && (
+              <div className="panel"><div className="panel-body" style={{ padding: 26 }}>
+                <div className="flex" style={{ gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                  <Icon name="alert" size={20} style={{ color: 'var(--red)' }} />
+                  <div className="panel-title" style={{ fontSize: 16 }}>{window.PCD.configured() ? 'No se pudieron cargar los datos' : 'Falta configurar Supabase'}</div>
+                </div>
+                <div className="tiny" style={{ color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{loadError}</div>
+                <div className="tiny dim" style={{ marginTop: 12 }}>{window.PCD.configured() ? 'Revisá los nombres de tabla/columnas en el bloque window.SUPA y las políticas RLS del proyecto.' : 'Editá el bloque window.SUPA al inicio del archivo con tu URL y anon key.'}</div>
+                <div style={{ marginTop: 16 }}><button className="btn btn-primary" onClick={() => { setLoading(true); reload(); }}><Icon name="refresh" size={14} /> Reintentar</button></div>
+              </div></div>
+            )}
+            {!loading && !loadError && <>
+            {view === 'dashboard' && <Dashboard companies={companies} onOpen={openCompany} />}
+            {view === 'empresas' && <Empresas companies={companies} query={query} setQuery={setQuery} onOpen={openCompany} onEdit={(c) => setModal({ type: 'company', initial: c })} onDelete={removeCompany} />}
+            {view === 'empresa' && selCo && <Detalle co={selCo} onBack={goEmpresas} onEdit={(c) => setModal({ type: 'company', initial: c })} onChangePlan={(c) => setModal({ type: 'plan', co: c })} onDelete={removeCompany} onMarkPaid={markPaid} onRemind={remind} onNewUsuario={(co, role) => setModal({ type: 'usuario', empresa: co, initial: { role } })} onEditUsuario={(co, u) => setModal({ type: 'usuario', empresa: co, initial: u })} onDeleteUsuario={removeUsuario} />}
+            {view === 'empresa' && !selCo && <div className="empty-state">Distribuidora no encontrada.</div>}
+            {view === 'suscripciones' && <Suscripciones companies={companies} onOpen={openCompany} onChangePlan={(c) => setModal({ type: 'plan', co: c })} onSetVence={setVence} onConfirmPayment={confirmPayment} onUpdatePlanPrice={updatePlanPrice} planPrices={planPrices} />}
+            {view === 'cobros' && <Cobros companies={companies} onOpen={openCompany} onConfirmPayment={confirmPayment} onToast={toast} />}
+            {view === 'reportes' && <Reportes companies={companies} onToast={toast} />}
+            {view === 'negocios' && <NegociosList negocios={negocios} query={query} loading={negLoading} onOpen={openNegocio} onEdit={(n) => setModal({ type: 'negocio_pos', initial: n })} onDelete={removeNegocio} onPago={pagoNegocio} />}
+            {view === 'negocio' && selNeg && <NegocioDetalle negocio={selNeg} onBack={goNegocios} onEdit={(n) => setModal({ type: 'negocio_pos', initial: n })} onDelete={removeNegocio} onPago={pagoNegocio} onReload={loadNegocios} />}
+            {view === 'negocio' && !selNeg && <div className="empty-state">Negocio no encontrado.</div>}
+            {view === 'negocios_cobros' && <NegociosCobros negocios={negocios} onOpen={openNegocio} onPago={pagoNegocio} />}
+            </>}
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {modal && modal.type === 'company' && <CompanyModal initial={modal.initial} onClose={() => setModal(null)} onSave={saveCompany} />}
+      {modal && modal.type === 'plan' && <PlanModal co={modal.co} onClose={() => setModal(null)} onSave={changePlan} />}
+      {modal && modal.type === 'usuario' && <UsuarioModal empresa={modal.empresa} initial={modal.initial} onClose={() => setModal(null)} onSave={saveUsuario} />}
+      {modal && modal.type === 'negocio_pos' && <NegocioPosModal initial={modal.initial} onClose={() => setModal(null)} onSave={saveNegocio} />}
+
+      {/* Toasts */}
+      <div className="toast-wrap">
+        {toasts.map((t) => (
+          <div className="toast" key={t.id}>
+            <span className="t-ico"><Icon name="check" size={16} /></span>
+            <span>{t.msg}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+</script>
+</body>
+</html>
