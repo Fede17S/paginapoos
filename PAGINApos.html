@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POS · Mercadito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   SISTEMA VISUAL — TOKENS Y BASE
+   ============================================================ */
+:root {
+  --green-50:  #ECF6F0;
+  --green-100: #D6ECE0;
+  --green-200: #AFD9C3;
+  --green-500: #25A36C;
+  --green-600: #1F8A5B;
+  --green-700: #176D49;
+  --green-800: #115338;
+  --bg:        #F4F6F5;
+  --surface:   #FFFFFF;
+  --surface-2: #FAFBFA;
+  --ink:       #16201B;
+  --ink-2:     #3C4842;
+  --muted:     #6B7670;
+  --muted-2:   #9AA39E;
+  --line:      #E6EAE7;
+  --line-2:    #EFF2F0;
+  --danger:    #C8463B;
+  --danger-bg: #FBECEA;
+  --warn:      #B5780E;
+  --warn-bg:   #FBF1DC;
+  --info:      #2A6FDB;
+  --info-bg:   #E8F0FC;
+  --radius:    14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(22,32,27,.05), 0 1px 3px rgba(22,32,27,.04);
+  --shadow:    0 2px 4px rgba(22,32,27,.04), 0 8px 24px rgba(22,32,27,.06);
+  --shadow-lg: 0 12px 40px rgba(22,32,27,.16);
+  --sidebar-w: 248px;
+  --font: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+#root { height: 100vh; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--green-600); outline-offset: 2px; }
+
+/* ---------- Layout shell ---------- */
+.app { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: var(--sidebar-w); flex: 0 0 var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 18px 14px; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 8px 8px 18px; }
+.brand-mark { width: 38px; height: 38px; border-radius: 11px; flex: 0 0 38px; background: var(--green-600); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 18px; box-shadow: 0 2px 8px rgba(31,138,91,.35); }
+.brand-name { font-weight: 800; font-size: 15.5px; letter-spacing: -.2px; line-height: 1.15; margin-bottom: 1px; }
+.brand-sub { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.nav { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
+.nav-section { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted-2); padding: 14px 10px 6px; }
+.nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 11px; color: var(--ink-2); font-size: 14.5px; font-weight: 600; text-align: left; transition: background .12s, color .12s; }
+.nav-item:hover { background: var(--surface-2); color: var(--ink); }
+.nav-item.active { background: var(--green-50); color: var(--green-700); }
+.nav-item svg { width: 20px; height: 20px; color: var(--muted); flex: 0 0 20px; }
+.nav-item.active svg { color: var(--green-600); }
+.nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; padding: 0 6px; }
+.sidebar-foot { margin-top: auto; }
+.user-chip { display: flex; align-items: center; gap: 11px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-100); color: var(--green-700); display: grid; place-items: center; font-weight: 700; flex: 0 0 36px; }
+.user-name { font-weight: 700; font-size: 13.5px; }
+.user-role { font-size: 11.5px; color: var(--muted); }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar { height: 64px; flex: 0 0 64px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+.topbar h1 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin: 0; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.clock { font-size: 13px; color: var(--muted); font-weight: 600; }
+.session-pill { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--green-700); background: var(--green-50); padding: 7px 12px; border-radius: 999px; }
+.session-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-500); box-shadow: 0 0 0 3px rgba(37,163,108,.18); }
+.content { flex: 1; overflow: auto; padding: 24px 28px; }
+.content.flush { padding: 0; overflow: hidden; }
+
+/* ---------- Botones ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 11px; font-weight: 700; font-size: 14px; border: 1px solid transparent; transition: all .12s; white-space: nowrap; }
+.btn svg { width: 18px; height: 18px; }
+.btn-primary { background: var(--green-600); color: #fff; }
+.btn-primary:hover { background: var(--green-700); }
+.btn-ghost { background: var(--surface); color: var(--ink-2); border-color: var(--line); }
+.btn-ghost:hover { background: var(--surface-2); border-color: var(--muted-2); }
+.btn-danger { background: var(--danger-bg); color: var(--danger); }
+.btn-danger:hover { background: #f7ddd9; }
+.btn-lg { padding: 16px 22px; font-size: 16px; border-radius: 13px; }
+.btn-block { width: 100%; }
+.btn-sm { padding: 7px 12px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.icon-btn { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: var(--muted); transition: background .12s, color .12s; }
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+/* ---------- Cards ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.card-pad { padding: 20px; }
+.card-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line-2); }
+.card-head h3 { margin: 0; font-size: 15px; font-weight: 800; }
+
+/* ---------- Inputs ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.input, .select { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 11px; font-size: 14.5px; background: var(--surface); color: var(--ink); transition: border .12s, box-shadow .12s; }
+.input:focus, .select:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(37,163,108,.15); }
+.input::placeholder { color: var(--muted-2); }
+
+/* ---------- KPIs ---------- */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow-sm); }
+.kpi-label { font-size: 12.5px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 7px; }
+.kpi-label svg { width: 16px; height: 16px; }
+.kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -.5px; margin-top: 8px; }
+.kpi-delta { font-size: 12.5px; font-weight: 700; margin-top: 4px; }
+.kpi-delta.up { color: var(--green-600); }
+.kpi-delta.down { color: var(--danger); }
+
+/* ---------- Tablas ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.table td { padding: 13px 16px; border-bottom: 1px solid var(--line-2); }
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: var(--surface-2); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Badges ---------- */
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; }
+.badge.ok { background: var(--green-50); color: var(--green-700); }
+.badge.low { background: var(--warn-bg); color: var(--warn); }
+.badge.out { background: var(--danger-bg); color: var(--danger); }
+.badge.info { background: var(--info-bg); color: var(--info); }
+.badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* ---------- Modal ---------- */
+.overlay { position: fixed; inset: 0; background: rgba(20,28,24,.42); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 50; padding: 24px; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 480px; overflow: hidden; animation: pop .16s ease-out; }
+.modal-head { padding: 20px 24px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; gap: 12px; }
+.modal-head h2 { margin: 0; font-size: 18px; font-weight: 800; }
+.modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
+.modal-foot { padding: 16px 24px; border-top: 1px solid var(--line-2); display: flex; gap: 10px; justify-content: flex-end; background: var(--surface-2); }
+@keyframes pop { from { opacity: 0; transform: scale(.97) translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Utilidades ---------- */
+.row { display: flex; align-items: center; gap: 12px; }
+.col { display: flex; flex-direction: column; }
+.gap-sm { gap: 8px; } .gap-lg { gap: 20px; }
+.spread { justify-content: space-between; }
+.muted { color: var(--muted); }
+.right { text-align: right; }
+.grow { flex: 1; }
+.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 0 12px; }
+.empty { display: grid; place-items: center; text-align: center; color: var(--muted); padding: 40px; }
+.empty svg { width: 44px; height: 44px; color: var(--muted-2); margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; }
+.hr { height: 1px; background: var(--line-2); border: none; margin: 16px 0; }
+.scroll { overflow: auto; }
+.scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.scroll::-webkit-scrollbar-thumb { background: #d3dad6; border-radius: 10px; border: 3px solid var(--surface); }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- Seg control / Chips ---------- */
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 3px; gap: 2px; }
+.seg-btn { padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+.seg-btn.on { background: var(--green-600); color: #fff; }
+.chip { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; transition: all .12s; }
+.chip:hover { border-color: var(--muted-2); }
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* ===================== POS / VENTA ===================== */
+.pos-wrap { display: flex; height: 100%; }
+.pos-left { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 20px 24px; gap: 16px; }
+.pos-right { width: 420px; flex: 0 0 420px; border-left: 1px solid var(--line); background: var(--surface); display: flex; }
+.pos-search { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 0 16px; transition: border .12s, box-shadow .12s; }
+.pos-search:focus-within { border-color: var(--green-500); box-shadow: 0 0 0 4px rgba(37,163,108,.13); }
+.pos-search svg { color: var(--green-600); flex: 0 0 auto; }
+.pos-search.sm { border-radius: 11px; }
+.pos-search.sm svg { color: var(--muted); }
+.pos-search-input { flex: 1; border: none; outline: none; background: none; font-size: 16px; padding: 15px 0; color: var(--ink); }
+.pos-search.sm .pos-search-input { padding: 10px 0; font-size: 14.5px; }
+.pos-search-input::placeholder { color: var(--muted-2); }
+.pos-search-clear { color: var(--muted); display: grid; place-items: center; }
+.cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; flex: 0 0 auto; }
+.prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; align-content: start; flex: 1; overflow-y: auto; padding-right: 4px; }
+.prod-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; text-align: left; display: flex; flex-direction: column; gap: 9px; transition: all .12s; }
+.prod-card:hover { border-color: var(--green-500); box-shadow: var(--shadow); transform: translateY(-2px); }
+.prod-card:active { transform: translateY(0); }
+.prod-card.disabled { opacity: .5; }
+.prod-card.disabled:hover { transform: none; border-color: var(--line); box-shadow: none; }
+.prod-thumb { height: 64px; border-radius: 10px; background: var(--green-50); color: var(--green-700); display: grid; place-items: center; font-weight: 800; font-size: 20px; position: relative; letter-spacing: .5px; }
+.prod-thumb[data-cat="bebidas"] { background: #E8F0FC; color: #2A6FDB; }
+.prod-thumb[data-cat="golosinas"] { background: #FBEAF2; color: #C2487E; }
+.prod-thumb[data-cat="snacks"] { background: #FBF1DC; color: #B5780E; }
+.prod-thumb[data-cat="cigarrillos"] { background: #ECEEF1; color: #5B6470; }
+.prod-thumb[data-cat="lacteos"] { background: #FFF7E6; color: #C28A0E; }
+.prod-thumb[data-cat="panificados"] { background: #F6EEE2; color: #9A6B33; }
+.prod-thumb[data-cat="limpieza"] { background: #E6F5F4; color: #1B8F86; }
+.prod-flag { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 50%; }
+.prod-flag.low { background: var(--warn); }
+.prod-flag.out { background: var(--danger); }
+.prod-name { font-size: 13.5px; font-weight: 700; line-height: 1.25; min-height: 34px; }
+.prod-foot { display: flex; align-items: baseline; justify-content: space-between; }
+.prod-price { font-size: 15px; font-weight: 800; }
+.prod-stock { font-size: 12px; color: var(--muted); }
+
+/* Ticket */
+.ticket { display: flex; flex-direction: column; width: 100%; }
+.ticket-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line-2); }
+.ticket-title { font-weight: 800; font-size: 16px; }
+.ticket-meta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.ticket-items { flex: 1; overflow-y: auto; padding: 8px 12px; }
+.ticket-line { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 10px; padding: 11px 8px; border-bottom: 1px solid var(--line-2); }
+.ticket-line:last-child { border-bottom: none; }
+.tl-info { min-width: 0; }
+.tl-name { font-weight: 700; font-size: 14px; line-height: 1.2; }
+.tl-unit { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.tl-sub { font-weight: 800; font-size: 14.5px; width: 84px; text-align: right; }
+.tl-del { color: var(--muted-2); width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; }
+.tl-del:hover { background: var(--danger-bg); color: var(--danger); }
+.qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.qty-btn { width: 28px; height: 30px; display: grid; place-items: center; color: var(--ink-2); background: var(--surface-2); }
+.qty-btn:hover { background: var(--green-50); color: var(--green-700); }
+.qty-val { width: 38px; height: 30px; border: none; text-align: center; font-size: 14px; font-weight: 700; outline: none; font-family: var(--mono); }
+.ticket-foot { border-top: 1px solid var(--line); padding: 16px 20px; display: flex; flex-direction: column; gap: 9px; }
+.tt-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-2); align-items: center; }
+.tt-total { display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; font-size: 17px; margin: 4px 0 8px; }
+.tt-total .mono { font-size: 26px; color: var(--green-700); }
+.disc-input { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; background: var(--surface); }
+.disc-input span { color: var(--muted); font-size: 13px; }
+.disc-input input { border: none; outline: none; width: 84px; text-align: right; font-size: 14px; font-weight: 700; background: none; font-family: var(--mono); }
+.disc-input:focus-within { border-color: var(--green-500); }
+
+/* Cobro */
+.pay-total { display: flex; justify-content: space-between; align-items: center; background: var(--green-50); border-radius: 12px; padding: 16px 18px; }
+.pay-total span { font-weight: 600; color: var(--green-800); }
+.pay-total strong { font-size: 28px; font-weight: 800; color: var(--green-700); }
+.pay-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pay-method { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 16px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-weight: 700; font-size: 13px; color: var(--ink-2); transition: all .12s; }
+.pay-method svg { color: var(--green-600); }
+.pay-method:hover:not(:disabled) { border-color: var(--green-500); background: var(--green-50); }
+.pay-method:disabled { opacity: .4; }
+.pay-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.pay-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface-2); border-radius: 10px; }
+.pay-row svg { color: var(--muted); }
+.pay-row-label { flex: 1; font-weight: 600; font-size: 14px; }
+.cash-quick { display: flex; gap: 7px; flex-wrap: wrap; }
+.pay-summary { margin-top: 14px; }
+.ps-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; }
+
+/* Recibo */
+.recibo { padding: 28px 24px 8px; text-align: center; }
+.recibo-check { width: 60px; height: 60px; border-radius: 50%; background: var(--green-50); color: var(--green-600); display: grid; place-items: center; margin: 0 auto 14px; }
+.recibo-title { font-weight: 800; font-size: 18px; }
+.recibo-amount { font-size: 40px; font-weight: 800; color: var(--green-700); margin: 4px 0; }
+.recibo-vuelto { color: var(--ink-2); margin-bottom: 8px; }
+.recibo-ticket { text-align: left; border: 1px dashed var(--line); border-radius: 12px; padding: 16px; margin-top: 16px; font-size: 13.5px; }
+.rt-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.rt-items { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line-2); }
+.rt-line { display: flex; justify-content: space-between; gap: 12px; }
+.rt-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 16px; padding: 10px 0; border-bottom: 1px solid var(--line-2); margin-bottom: 10px; }
+.rt-pays { display: flex; gap: 6px; flex-wrap: wrap; }
+.rt-foot { text-align: center; margin-top: 12px; font-size: 12.5px; }
+
+/* ===================== LOGIN ===================== */
+.login { height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+.login-aside { background: var(--green-700); color: #fff; padding: 56px; display: flex; flex-direction: column; gap: 32px; position: relative; overflow: hidden; }
+.login-aside::after { content: ""; position: absolute; right: -120px; bottom: -120px; width: 360px; height: 360px; border-radius: 50%; background: rgba(255,255,255,.06); }
+.login-aside::before { content: ""; position: absolute; right: 60px; top: -80px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.05); }
+.login-brand { display: flex; align-items: center; gap: 16px; }
+.login-brand .brand-mark { background: #fff; color: var(--green-700); box-shadow: none; }
+.login-illustration { display: flex; flex-direction: column; gap: 16px; margin-top: auto; margin-bottom: auto; position: relative; z-index: 1; }
+.li-row { display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 500; }
+.li-row svg { flex: 0 0 auto; opacity: .9; background: rgba(255,255,255,.12); padding: 9px; width: 42px; height: 42px; border-radius: 11px; }
+.login-foot { color: rgba(255,255,255,.7) !important; text-transform: capitalize; position: relative; z-index: 1; }
+.login-main { display: grid; place-items: center; padding: 40px; background: var(--bg); }
+.login-card { width: 100%; max-width: 380px; }
+.login-title { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+.login-sub { margin-top: 4px; font-size: 14.5px; }
+.login-users { display: flex; flex-direction: column; gap: 8px; margin: 22px 0; }
+.login-user { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 13px; background: var(--surface); text-align: left; transition: all .12s; }
+.login-user:hover { border-color: var(--muted-2); }
+.login-user.on { border-color: var(--green-600); background: var(--green-50); }
+.lu-info { display: flex; flex-direction: column; }
+.lu-info strong { font-size: 14.5px; }
+.lu-info .muted { font-size: 12.5px; }
+.pin-dots { display: flex; gap: 16px; justify-content: center; margin: 8px 0 18px; }
+.pin-dots.err { animation: shake .3s; }
+.pin-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--muted-2); transition: all .12s; }
+.pin-dot.full { background: var(--green-600); border-color: var(--green-600); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.login-error { text-align: center; color: var(--danger); font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.key { height: 58px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); font-size: 22px; font-weight: 700; color: var(--ink); display: grid; place-items: center; transition: all .1s; }
+.key:hover { background: var(--green-50); border-color: var(--green-200); }
+.key:active { transform: scale(.96); }
+.key-sub { color: var(--muted); font-size: 17px; }
+.login-hint { text-align: center; margin-top: 18px; font-size: 12px; }
+
+/* ===================== STOCK ===================== */
+.stock-adjust { display: inline-flex; align-items: center; gap: 8px; }
+.stock-adjust button { width: 26px; height: 26px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); }
+.stock-adjust button:hover { background: var(--green-50); color: var(--green-700); border-color: var(--green-200); }
+.stock-adjust span { min-width: 42px; text-align: center; font-weight: 700; font-family: var(--mono); }
+
+/* ===================== REPORTES ===================== */
+.report-cols { display: flex; gap: 20px; align-items: flex-start; }
+.bar-track { height: 8px; background: var(--line-2); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--green-600); border-radius: 999px; }
+
+/* ===================== CAJA ===================== */
+.caja-cols { display: flex; gap: 20px; align-items: flex-start; }
+.caja-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+.caja-meta > div { display: flex; flex-direction: column; gap: 3px; }
+.caja-meta .muted { font-size: 12.5px; }
+.caja-meta strong { font-size: 15px; }
+.arqueo-head { display: grid; grid-template-columns: 1fr 110px 130px; gap: 12px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; }
+.arqueo-row { display: grid; grid-template-columns: 1fr 110px 130px; gap: 12px; align-items: center; }
+.ar-label { display: flex; flex-direction: column; }
+.ar-label strong { font-size: 14px; }
+.ar-label .muted { font-size: 11.5px; }
+.ar-exp { text-align: right; color: var(--ink-2); font-weight: 600; font-family: var(--mono); }
+.arqueo-row .disc-input { justify-content: flex-end; }
+.arqueo-row .disc-input input { width: 90px; }
+
+/* ===================== ADMIN ===================== */
+.repo-row { display: flex; align-items: center; gap: 14px; padding: 13px 20px; border-bottom: 1px solid var(--line-2); }
+.repo-row:last-child { border-bottom: none; }
+.repo-row > div:first-child { flex: 1; }
+
+/* ===================== TOASTS ===================== */
+.toasts { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 80; align-items: center; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 9px; background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: var(--shadow-lg); animation: toastIn .2s ease-out; }
+.toast.err { background: var(--danger); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* BarChart */
+.bar-chart { display: flex; align-items: flex-end; gap: 4px; width: 100%; }
+.bar-chart-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+.bar-chart-bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--green-500); min-height: 3px; transition: height .3s; }
+.bar-chart-bar:hover { background: var(--green-700); }
+.bar-chart-label { font-size: 10px; color: var(--muted); font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+@media print {
+  .sidebar, .topbar, .modal-foot { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<!-- ============================================================
+     DATOS SEED
+     ============================================================ -->
+<script>
+window.SEED_CATEGORIES = [
+  { id: "bebidas",     nombre: "Bebidas" },
+  { id: "golosinas",  nombre: "Golosinas" },
+  { id: "snacks",     nombre: "Snacks" },
+  { id: "cigarrillos",nombre: "Cigarrillos" },
+  { id: "almacen",    nombre: "Almacén" },
+  { id: "lacteos",    nombre: "Lácteos" },
+  { id: "panificados",nombre: "Panificados" },
+  { id: "limpieza",   nombre: "Limpieza" },
+];
+
+window.SEED_PRODUCTS = [
+  { id:"p001",nombre:"Coca-Cola 500ml",       cat:"bebidas",    barcode:"7790895000123",precio:1500,costo:950, stock:48,minStock:12,unidad:"u" },
+  { id:"p002",nombre:"Coca-Cola 1.5L",        cat:"bebidas",    barcode:"7790895000147",precio:3200,costo:2100,stock:30,minStock:8, unidad:"u" },
+  { id:"p003",nombre:"Agua Mineral 500ml",    cat:"bebidas",    barcode:"7790895000543",precio:900, costo:520, stock:60,minStock:15,unidad:"u" },
+  { id:"p004",nombre:"Sprite 500ml",          cat:"bebidas",    barcode:"7790895000178",precio:1450,costo:920, stock:24,minStock:12,unidad:"u" },
+  { id:"p005",nombre:"Cerveza Quilmes 1L",    cat:"bebidas",    barcode:"7792798001230",precio:2800,costo:1850,stock:18,minStock:10,unidad:"u" },
+  { id:"p006",nombre:"Energizante Speed 500", cat:"bebidas",    barcode:"7790070001111",precio:2600,costo:1700,stock:9, minStock:10,unidad:"u" },
+  { id:"p007",nombre:"Jugo Cepita Naranja 1L",cat:"bebidas",    barcode:"7790895111200",precio:2100,costo:1350,stock:14,minStock:6, unidad:"u" },
+  { id:"p008",nombre:"Alfajor Jorgito",       cat:"golosinas",  barcode:"7791234000019",precio:850, costo:520, stock:72,minStock:20,unidad:"u" },
+  { id:"p009",nombre:"Chocolate Milka 55g",   cat:"golosinas",  barcode:"7622300336745",precio:1900,costo:1250,stock:26,minStock:10,unidad:"u" },
+  { id:"p010",nombre:"Chicles Beldent x10",   cat:"golosinas",  barcode:"7790310000027",precio:650, costo:380, stock:40,minStock:15,unidad:"u" },
+  { id:"p011",nombre:"Caramelos Sugus",       cat:"golosinas",  barcode:"7790310985211",precio:380, costo:210, stock:90,minStock:25,unidad:"u" },
+  { id:"p012",nombre:"Bon o Bon unidad",      cat:"golosinas",  barcode:"7790040999017",precio:420, costo:240, stock:110,minStock:30,unidad:"u" },
+  { id:"p013",nombre:"Tita x3",               cat:"golosinas",  barcode:"7790040123410",precio:720, costo:450, stock:35,minStock:12,unidad:"u" },
+  { id:"p014",nombre:"Papas Lays Clásicas",   cat:"snacks",     barcode:"7790310771025",precio:2400,costo:1550,stock:22,minStock:10,unidad:"u" },
+  { id:"p015",nombre:"Doritos Queso",         cat:"snacks",     barcode:"7790310772015",precio:2600,costo:1700,stock:5, minStock:10,unidad:"u" },
+  { id:"p016",nombre:"Maní Salado 100g",      cat:"snacks",     barcode:"7791111000034",precio:1300,costo:800, stock:30,minStock:8, unidad:"u" },
+  { id:"p017",nombre:"Palitos Pehuamar",      cat:"snacks",     barcode:"7790310773012",precio:1850,costo:1200,stock:16,minStock:8, unidad:"u" },
+  { id:"p018",nombre:"Marlboro Box 20",       cat:"cigarrillos",barcode:"7790000000010",precio:3800,costo:3000,stock:28,minStock:10,unidad:"u" },
+  { id:"p019",nombre:"Philip Morris Box 20",  cat:"cigarrillos",barcode:"7790000000027",precio:3600,costo:2850,stock:20,minStock:10,unidad:"u" },
+  { id:"p020",nombre:"Lucky Strike Box 20",   cat:"cigarrillos",barcode:"7790000000034",precio:3700,costo:2900,stock:7, minStock:10,unidad:"u" },
+  { id:"p021",nombre:"Yerba Mate 1kg",        cat:"almacen",    barcode:"7792200000015",precio:4900,costo:3400,stock:25,minStock:8, unidad:"u" },
+  { id:"p022",nombre:"Azúcar 1kg",            cat:"almacen",    barcode:"7792200000022",precio:1700,costo:1100,stock:33,minStock:10,unidad:"u" },
+  { id:"p023",nombre:"Fideos Spaghetti 500g", cat:"almacen",    barcode:"7792200000039",precio:1400,costo:880, stock:41,minStock:12,unidad:"u" },
+  { id:"p024",nombre:"Aceite Girasol 900ml",  cat:"almacen",    barcode:"7792200000046",precio:3100,costo:2200,stock:19,minStock:8, unidad:"u" },
+  { id:"p025",nombre:"Arroz 1kg",             cat:"almacen",    barcode:"7792200000053",precio:1950,costo:1300,stock:28,minStock:10,unidad:"u" },
+  { id:"p026",nombre:"Sal Fina 500g",         cat:"almacen",    barcode:"7792200000060",precio:750, costo:420, stock:36,minStock:10,unidad:"u" },
+  { id:"p027",nombre:"Leche Entera 1L",       cat:"lacteos",    barcode:"7790080000017",precio:1600,costo:1050,stock:22,minStock:12,unidad:"u" },
+  { id:"p028",nombre:"Yogur Bebible 1L",      cat:"lacteos",    barcode:"7790080000024",precio:2300,costo:1500,stock:11,minStock:6, unidad:"u" },
+  { id:"p029",nombre:"Queso Cremoso x kg",    cat:"lacteos",    barcode:"0200001000000",precio:8900,costo:6200,stock:6, minStock:3, unidad:"kg"},
+  { id:"p030",nombre:"Manteca 200g",          cat:"lacteos",    barcode:"7790080000048",precio:2100,costo:1400,stock:14,minStock:6, unidad:"u" },
+  { id:"p031",nombre:"Pan Lactal Bimbo",      cat:"panificados",barcode:"7790070111014",precio:2400,costo:1600,stock:12,minStock:6, unidad:"u" },
+  { id:"p032",nombre:"Facturas x6",           cat:"panificados",barcode:"0300001000000",precio:3200,costo:1900,stock:8, minStock:4, unidad:"u" },
+  { id:"p033",nombre:"Pan Francés x kg",      cat:"panificados",barcode:"0300002000000",precio:2800,costo:1700,stock:10,minStock:4, unidad:"kg"},
+  { id:"p034",nombre:"Lavandina 1L",          cat:"limpieza",   barcode:"7791290000011",precio:1200,costo:700, stock:20,minStock:8, unidad:"u" },
+  { id:"p035",nombre:"Detergente 750ml",      cat:"limpieza",   barcode:"7791290000028",precio:2200,costo:1450,stock:15,minStock:6, unidad:"u" },
+  { id:"p036",nombre:"Rollo Cocina x3",       cat:"limpieza",   barcode:"7791290000035",precio:2900,costo:1900,stock:4, minStock:6, unidad:"u" },
+];
+
+window.SEED_USERS = [
+  { id:"u1", nombre:"Admin",  rol:"Administrador", pin:"1234", inicial:"A" },
+  { id:"u2", nombre:"Lucía",  rol:"Cajero",        pin:"1111", inicial:"L" },
+  { id:"u3", nombre:"Martín", rol:"Cajero",        pin:"2222", inicial:"M" },
+];
+
+window.SEED_SETTINGS = {
+  negocio:"Mercadito San Juan", cuit:"30-71234567-8",
+  direccion:"Av. San Juan 1450, CABA", moneda:"ARS", simbolo:"$",
+  ivaIncluido:true, ticketFooter:"¡Gracias por su compra!",
+};
+
+window.SEED_PAYMENT_METHODS = [
+  { id:"efectivo",      nombre:"Efectivo",                 atajo:"F1" },
+  { id:"tarjeta",       nombre:"Tarjeta",                  atajo:"F2" },
+  { id:"qr",            nombre:"QR / Billetera",           atajo:"F3" },
+  { id:"transferencia", nombre:"Transferencia",            atajo:"F4" },
+  { id:"fiado",         nombre:"Cuenta corriente (fiado)", atajo:"F5" },
+];
+
+window.SEED_HISTORY_DAYS = 7;
+</script>
+
+<!-- ============================================================
+     STORE GLOBAL
+     ============================================================ -->
+<script>
+(function () {
+  const KEY = "pos_state_v3";
+  const uid = (p) => p + Math.random().toString(36).slice(2, 9);
+  function nowISO() { return new Date().toISOString(); }
+  function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+
+  function seedSales(products) {
+    const sales = [];
+    const days = window.SEED_HISTORY_DAYS || 7;
+    const methods = ["efectivo","tarjeta","qr","transferencia"];
+    for (let d = days; d >= 1; d--) {
+      const base = startOfDay(new Date());
+      base.setDate(base.getDate() - d);
+      const ticketCount = 8 + Math.floor(Math.random() * 14);
+      for (let t = 0; t < ticketCount; t++) {
+        const items = [];
+        const n = 1 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < n; i++) {
+          const p = products[Math.floor(Math.random() * products.length)];
+          const qty = 1 + Math.floor(Math.random() * 3);
+          items.push({ productId:p.id, nombre:p.nombre, precio:p.precio, costo:p.costo, qty });
+        }
+        const subtotal = items.reduce((s,it) => s + it.precio * it.qty, 0);
+        const ts = new Date(base);
+        ts.setHours(9 + Math.floor(Math.random() * 12), Math.floor(Math.random() * 60));
+        const method = methods[Math.floor(Math.random() * methods.length)];
+        sales.push({ id:uid("v"), ts:ts.toISOString(), items, subtotal, descuento:0, total:subtotal,
+          payments:[{ method, amount:subtotal }], cajero:"Lucía", sessionId:null });
+      }
+    }
+    return sales;
+  }
+
+  function initial() {
+    const products = JSON.parse(JSON.stringify(window.SEED_PRODUCTS));
+    return {
+      booted:true, user:null, products,
+      categories:window.SEED_CATEGORIES, users:window.SEED_USERS,
+      settings:window.SEED_SETTINGS, paymentMethods:window.SEED_PAYMENT_METHODS,
+      cart:[], descuento:0, sales:seedSales(products), cashSessions:[], currentSessionId:null, lastSale:null,
+    };
+  }
+
+  let state = load() || initial();
+  const subs = new Set();
+
+  function load() {
+    try { const raw=localStorage.getItem(KEY); if(!raw) return null; const s=JSON.parse(raw); return s&&s.booted?s:null; } catch(e){return null;}
+  }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+  function emit() { subs.forEach(fn => fn()); }
+  function setState(patch) {
+    const next = typeof patch==="function" ? patch(state) : patch;
+    state = Object.assign({}, state, next);
+    persist(); emit();
+  }
+  function getState() { return state; }
+  function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
+  function reset() { state = initial(); persist(); emit(); }
+
+  function findProduct(id) { return state.products.find(p => p.id===id); }
+  function cartLines() {
+    return state.cart.map(c => {
+      const p = findProduct(c.productId);
+      return { ...c, producto:p, subtotal:(p?p.precio:0)*c.qty };
+    });
+  }
+  function cartSubtotal() { return cartLines().reduce((s,l) => s+l.subtotal, 0); }
+  function cartTotal() { return Math.max(0, cartSubtotal() - (state.descuento||0)); }
+  function cartCount() { return state.cart.reduce((s,c) => s+c.qty, 0); }
+  function currentSession() { return state.cashSessions.find(s => s.id===state.currentSessionId)||null; }
+
+  const POS = {
+    login(userId, pin) {
+      const u = state.users.find(x => x.id===userId);
+      if (!u) return {ok:false, error:"Usuario no encontrado"};
+      if (String(pin)!==String(u.pin)) return {ok:false, error:"PIN incorrecto"};
+      if (!currentSession()) {
+        const s = { id:uid("s"), cajero:u.nombre, openedAt:nowISO(), openingAmount:10000, closedAt:null, status:"abierta", counted:null, expected:null, difference:null };
+        setState(st => ({ cashSessions:[...st.cashSessions,s], currentSessionId:s.id, user:u }));
+        return {ok:true};
+      }
+      setState({user:u}); return {ok:true};
+    },
+    logout() { setState({user:null}); },
+    addToCart(productId, qty=1) {
+      const p = findProduct(productId);
+      if (!p) return {ok:false};
+      setState(st => {
+        const existing = st.cart.find(c => c.productId===productId);
+        const cart = existing
+          ? st.cart.map(c => c.productId===productId ? {...c, qty:c.qty+qty} : c)
+          : [...st.cart, {productId, qty}];
+        return {cart};
+      });
+      return {ok:true, producto:p};
+    },
+    addByBarcode(code) {
+      const p = state.products.find(x => x.barcode===String(code).trim());
+      if (!p) return {ok:false, error:"Código no encontrado"};
+      POS.addToCart(p.id, 1); return {ok:true, producto:p};
+    },
+    setQty(productId, qty) {
+      qty = Math.max(0, Math.round(qty));
+      setState(st => ({ cart: qty===0 ? st.cart.filter(c => c.productId!==productId) : st.cart.map(c => c.productId===productId ? {...c,qty} : c) }));
+    },
+    inc(productId) { const c=state.cart.find(x => x.productId===productId); POS.setQty(productId,(c?c.qty:0)+1); },
+    dec(productId) { const c=state.cart.find(x => x.productId===productId); POS.setQty(productId,(c?c.qty:0)-1); },
+    removeFromCart(productId) { setState(st => ({cart:st.cart.filter(c => c.productId!==productId)})); },
+    clearCart() { setState({cart:[],descuento:0}); },
+    setDescuento(amount) { setState({descuento:Math.max(0,Math.round(amount||0))}); },
+    checkout(payments) {
+      const lines = cartLines();
+      if (lines.length===0) return {ok:false, error:"Carrito vacío"};
+      const subtotal = cartSubtotal();
+      const descuento = state.descuento||0;
+      const total = cartTotal();
+      const sale = {
+        id:uid("v"), numero:state.sales.length+1, ts:nowISO(),
+        items:lines.map(l => ({productId:l.productId, nombre:l.producto.nombre, precio:l.producto.precio, costo:l.producto.costo, qty:l.qty})),
+        subtotal, descuento, total, payments,
+        cajero:state.user?state.user.nombre:"—", sessionId:state.currentSessionId,
+      };
+      setState(st => {
+        const products = st.products.map(p => { const ln=lines.find(l=>l.productId===p.id); return ln?{...p,stock:+(p.stock-ln.qty).toFixed(3)}:p; });
+        return { products, sales:[...st.sales,sale], cart:[], descuento:0, lastSale:sale };
+      });
+      return {ok:true, sale};
+    },
+    upsertProduct(prod) {
+      setState(st => {
+        const exists = st.products.find(p => p.id===prod.id);
+        const products = exists
+          ? st.products.map(p => p.id===prod.id ? {...p,...prod} : p)
+          : [...st.products, {...prod, id:prod.id||uid("p")}];
+        return {products};
+      });
+    },
+    setStock(productId, value) { setState(st => ({products:st.products.map(p => p.id===productId?{...p,stock:Math.max(0,Number(value)||0)}:p)})); },
+    adjustStock(productId, delta) { setState(st => ({products:st.products.map(p => p.id===productId?{...p,stock:Math.max(0,p.stock+delta)}:p)})); },
+    deleteProduct(productId) { setState(st => ({products:st.products.filter(p => p.id!==productId)})); },
+    closeSession(countedByMethod) {
+      const session = currentSession();
+      if (!session) return {ok:false};
+      const sales = state.sales.filter(s => s.sessionId===session.id);
+      const expectedByMethod = {};
+      sales.forEach(s => s.payments.forEach(p => { expectedByMethod[p.method]=(expectedByMethod[p.method]||0)+p.amount; }));
+      const expectedEfectivo = (expectedByMethod.efectivo||0) + session.openingAmount;
+      const countedEfectivo = countedByMethod.efectivo||0;
+      const difference = countedEfectivo - expectedEfectivo;
+      const closed = { ...session, closedAt:nowISO(), status:"cerrada", counted:countedByMethod, expectedByMethod, expectedEfectivo, difference,
+        totalVendido:sales.reduce((s,x) => s+x.total,0), ticketCount:sales.length };
+      setState(st => ({ cashSessions:st.cashSessions.map(s => s.id===closed.id?closed:s), currentSessionId:null }));
+      return {ok:true, session:closed};
+    },
+    openSession(openingAmount) {
+      const s = { id:uid("s"), cajero:state.user?state.user.nombre:"—", openedAt:nowISO(),
+        openingAmount:Number(openingAmount)||0, closedAt:null, status:"abierta", counted:null, expected:null, difference:null };
+      setState(st => ({cashSessions:[...st.cashSessions,s], currentSessionId:s.id}));
+      return {ok:true, session:s};
+    },
+    updateSettings(patch) { setState(st => ({settings:{...st.settings,...patch}})); },
+    resetAll() { reset(); },
+  };
+
+  POS.findProduct = findProduct;
+  POS.cartLines = cartLines;
+  POS.cartSubtotal = cartSubtotal;
+  POS.cartTotal = cartTotal;
+  POS.cartCount = cartCount;
+  POS.currentSession = currentSession;
+
+  window.POSStore = { getState, setState, subscribe, reset };
+  window.POS = POS;
+
+  window.useStore = function() {
+    const R = window.React;
+    const [,force] = R.useReducer(x=>x+1, 0);
+    R.useEffect(() => subscribe(force), []);
+    return getState();
+  };
+
+  window.fmt = function(n) {
+    const v = Math.round(Number(n)||0);
+    return "$ " + v.toLocaleString("es-AR");
+  };
+  window.fmtNum = function(n) { return (Number(n)||0).toLocaleString("es-AR"); };
+  window.fmtDate = function(d, opts) {
+    return new Date(d).toLocaleDateString("es-AR", opts || {day:"2-digit",month:"short",year:"numeric"});
+  };
+  window.fmtTime = function(d) {
+    return new Date(d).toLocaleTimeString("es-AR", {hour:"2-digit",minute:"2-digit"});
+  };
+})();
+</script>
+
+<!-- ============================================================
+     COMPONENTES BABEL/JSX
+     ============================================================ -->
+
+<!-- ICONOS -->
+<script type="text/babel">
+const Icon = (function() {
+  const R = window.React;
+  const P = {
+    cart:    "M2.5 3h2l1.2 12.5a2 2 0 0 0 2 1.8h8.6a2 2 0 0 0 2-1.7L20 7H6M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
+    box:     "M21 8 12 3 3 8m18 0-9 5m9-5v8l-9 5m0-13L3 8m9 5v8m0-8L3 8v8l9 5",
+    chart:   "M3 3v18h18M8 16V10M13 16V6M18 16v-4",
+    cash:    "M2 6h20v12H2zM2 10h20M7 14h2M12 14h3",
+    shield:  "M12 3 5 6v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V6l-7-3Z",
+    search:  "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.3-4.3",
+    scan:    "M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M6 8v8M9 8v8M11.5 8v8M14 8v8M16 8v8M18.5 8v8",
+    plus:    "M12 5v14M5 12h14",
+    minus:   "M5 12h14",
+    trash:   "M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M10 11v6M14 11v6",
+    x:       "M6 6l12 12M18 6 6 18",
+    check:   "M20 6 9 17l-5-5",
+    logout:  "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+    user:    "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+    alert:   "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
+    settings:"M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V7a1.6 1.6 0 0 0 1.5 1H23a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z",
+    receipt: "M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2Zm3 6h10M7 12h10M7 16h6",
+    package: "M16 3H8a2 2 0 0 0-2 2v14l6-3 6 3V5a2 2 0 0 0-2-2Z",
+    tag:     "M3 7v4.6a2 2 0 0 0 .6 1.4l7.8 7.8a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8L11 5.6A2 2 0 0 0 9.6 5H5a2 2 0 0 0-2 2Zm4 1h.01",
+    clock:   "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2",
+    download:"M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2",
+    edit:    "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z",
+    coins:   "M9 9a6 3 0 1 0 0-6 6 3 0 0 0 0 6Zm0 0v6c0 1.7 2.7 3 6 3M3 6v6c0 1.7 2.7 3 6 3m6-9v6m0 0c0 1.7 2.7 3 6 3v-6",
+    card:    "M2 6h20v12H2zM2 10h20M6 15h4",
+    qr:      "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v3M17 20h4M14 20v1",
+    bank:    "M3 9 12 3l9 6M4 9v10m16-10v10M4 19h16M8 12v4M12 12v4M16 12v4",
+  };
+  return function Icon({ name, size, strokeWidth, style, className }) {
+    const d = P[name] || P.box;
+    return R.createElement("svg", {
+      width:size||22, height:size||22, viewBox:"0 0 24 24", fill:"none",
+      stroke:"currentColor", strokeWidth:strokeWidth||1.8,
+      strokeLinecap:"round", strokeLinejoin:"round", style, className,
+    }, d.split(" M").map((seg,i) => R.createElement("path",{key:i,d:(i?"M":"")+seg})));
+  };
+})();
+window.Icon = Icon;
+</script>
+
+<!-- COMPONENTES UI COMPARTIDOS -->
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback, useReducer } = React;
+
+// Hook reloj
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+  return now;
+}
+window.useClock = useClock;
+
+// Hook toasts
+function useToasts() {
+  const [toasts, setToasts] = useState([]);
+  function push(msg, type="ok") {
+    const id = Math.random().toString(36).slice(2);
+    setToasts(ts => [...ts, {id, msg, type}]);
+    setTimeout(() => setToasts(ts => ts.filter(t => t.id !== id)), 2800);
+  }
+  const node = (
+    <div className="toasts">
+      {toasts.map(t => (
+        <div key={t.id} className={"toast " + t.type}>
+          {t.type === "ok" ? <Icon name="check" size={18}/> : <Icon name="alert" size={18}/>}
+          {t.msg}
+        </div>
+      ))}
+    </div>
+  );
+  return [push, node];
+}
+window.useToasts = useToasts;
+
+// Modal
+function Modal({ open, onClose, children, max }) {
+  if (!open) return null;
+  return (
+    <div className="overlay" onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div className="modal" style={max ? {maxWidth:max} : {}}>
+        {children}
+      </div>
+    </div>
+  );
+}
+window.Modal = Modal;
+
+// QtyStepper
+function QtyStepper({ value, onChange, min=1 }) {
+  return (
+    <div className="qty">
+      <button className="qty-btn" onClick={() => onChange(Math.max(min, value-1))}><Icon name="minus" size={14}/></button>
+      <input className="qty-val" value={value} readOnly style={{fontFamily:"var(--mono)"}}/>
+      <button className="qty-btn" onClick={() => onChange(value+1)}><Icon name="plus" size={14}/></button>
+    </div>
+  );
+}
+window.QtyStepper = QtyStepper;
+
+// BarChart
+function BarChart({ data, height=200 }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  return (
+    <div className="bar-chart" style={{height}}>
+      {data.map((d,i) => (
+        <div key={i} className="bar-chart-col" style={{height:"100%",justifyContent:"flex-end"}}>
+          <div style={{flex:1,display:"flex",alignItems:"flex-end"}}>
+            <div className="bar-chart-bar" title={fmt(d.value)} style={{height: Math.max(3,(d.value/max)*100)+"%", width:"100%"}}></div>
+          </div>
+          <div className="bar-chart-label">{d.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+window.BarChart = BarChart;
+
+// StockBadge
+function StockBadge({ p }) {
+  if (p.stock <= 0) return <span className="badge out">Sin stock</span>;
+  if (p.stock <= p.minStock) return <span className="badge low">Stock bajo</span>;
+  return <span className="badge ok">OK</span>;
+}
+window.StockBadge = StockBadge;
+</script>
+
+<!-- LOGIN -->
+<script type="text/babel">
+const { useState: useState2, useEffect: useEffect2 } = React;
+
+function LoginScreen({ onLogged }) {
+  const s = useStore();
+  const [userId, setUserId] = useState2(s.users[0].id);
+  const [pin, setPin] = useState2("");
+  const [error, setError] = useState2("");
+  const now = useClock();
+
+  function press(d) {
+    setError("");
+    if (d==="del") return setPin(p => p.slice(0,-1));
+    if (d==="clear") return setPin("");
+    if (pin.length>=4) return;
+    setPin(p => p+d);
+  }
+  function submit() {
+    const res = POS.login(userId, pin);
+    if (res.ok) { onLogged(); } else { setError(res.error); setPin(""); }
+  }
+  useEffect2(() => { if(pin.length===4) { const t=setTimeout(submit,150); return ()=>clearTimeout(t); } }, [pin]);
+
+  return (
+    <div className="login">
+      <div className="login-aside">
+        <div className="login-brand">
+          <div className="brand-mark" style={{width:52,height:52,fontSize:24,borderRadius:15}}>{(s.settings.negocio||"M")[0]}</div>
+          <div>
+            <div style={{fontWeight:800,fontSize:22,letterSpacing:"-.3px"}}>{s.settings.negocio}</div>
+            <div className="muted" style={{fontSize:14}}>Sistema de gestión y punto de venta</div>
+          </div>
+        </div>
+        <div className="login-illustration">
+          <div className="li-row"><Icon name="cart" size={20}/><span>Cobrá rápido con lector de códigos</span></div>
+          <div className="li-row"><Icon name="box" size={20}/><span>Control de stock en tiempo real</span></div>
+          <div className="li-row"><Icon name="chart" size={20}/><span>Reportes de ventas y ganancias</span></div>
+          <div className="li-row"><Icon name="cash" size={20}/><span>Cierre de caja al final del día</span></div>
+        </div>
+        <div className="login-foot muted">{fmtDate(now,{weekday:"long",day:"2-digit",month:"long"})} · {fmtTime(now)}</div>
+      </div>
+      <div className="login-main">
+        <div className="login-card">
+          <div className="login-title">Iniciar sesión</div>
+          <div className="login-sub muted">Elegí tu usuario e ingresá tu PIN</div>
+          <div className="login-users">
+            {s.users.map(u => (
+              <button key={u.id} className={"login-user"+(u.id===userId?" on":"")} onClick={()=>{setUserId(u.id);setPin("");setError("");}}>
+                <span className="avatar">{u.inicial}</span>
+                <span className="lu-info"><strong>{u.nombre}</strong><span className="muted">{u.rol}</span></span>
+              </button>
+            ))}
+          </div>
+          <div className={"pin-dots"+(error?" err":"")}>
+            {[0,1,2,3].map(i => <span key={i} className={"pin-dot"+(pin.length>i?" full":"")}></span>)}
+          </div>
+          {error && <div className="login-error">{error}</div>}
+          <div className="keypad">
+            {[1,2,3,4,5,6,7,8,9].map(n => (
+              <button key={n} className="key" onClick={()=>press(String(n))}>{n}</button>
+            ))}
+            <button className="key key-sub" onClick={()=>press("clear")}>C</button>
+            <button className="key" onClick={()=>press("0")}>0</button>
+            <button className="key key-sub" onClick={()=>press("del")}><Icon name="x" size={20}/></button>
+          </div>
+          <div className="login-hint muted">PIN de demo · Admin: 1234 · Lucía: 1111 · Martín: 2222</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+window.LoginScreen = LoginScreen;
+</script>
+
+<!-- VENTA / POS -->
+<script type="text/babel">
+const { useState: useStateV, useEffect: useEffectV, useRef: useRefV, useMemo: useMemoV } = React;
+
+function VentaScreen({ pushToast }) {
+  const s = useStore();
+  const [query, setQuery] = useStateV("");
+  const [cat, setCat] = useStateV("todos");
+  const [checkout, setCheckout] = useStateV(false);
+  const [recibo, setRecibo] = useStateV(null);
+  const searchRef = useRefV(null);
+
+  const lines = POS.cartLines();
+  const subtotal = POS.cartSubtotal();
+  const total = POS.cartTotal();
+
+  useEffectV(() => { if(!checkout && !recibo) searchRef.current && searchRef.current.focus(); }, [checkout, recibo, s.cart.length]);
+
+  const filtered = useMemoV(() => {
+    const q = query.trim().toLowerCase();
+    return s.products.filter(p => {
+      if (cat!=="todos" && p.cat!==cat) return false;
+      if (!q) return true;
+      return p.nombre.toLowerCase().includes(q) || p.barcode.includes(q);
+    });
+  }, [s.products, query, cat]);
+
+  function onSearchKey(e) {
+    if (e.key!=="Enter") return;
+    const code = query.trim();
+    if (!code) return;
+    const byCode = s.products.find(p => p.barcode===code);
+    if (byCode) { POS.addToCart(byCode.id); pushToast(byCode.nombre+" agregado"); setQuery(""); return; }
+    if (filtered.length===1) { POS.addToCart(filtered[0].id); pushToast(filtered[0].nombre+" agregado"); setQuery(""); return; }
+    if (filtered.length===0) pushToast("Sin resultados para «"+code+"»","err");
+  }
+
+  function addProduct(p) {
+    if (p.stock<=0) { pushToast("Sin stock: "+p.nombre,"err"); return; }
+    POS.addToCart(p.id);
+  }
+
+  function confirmSale(payments, vuelto) {
+    const res = POS.checkout(payments);
+    if (res.ok) { setCheckout(false); setRecibo({sale:res.sale, vuelto}); }
+  }
+
+  return (
+    <div className="pos-wrap">
+      <div className="pos-left">
+        <div className="pos-search">
+          <Icon name="scan" size={22}/>
+          <input ref={searchRef} className="pos-search-input" value={query}
+            onChange={e=>setQuery(e.target.value)} onKeyDown={onSearchKey}
+            placeholder="Escaneá un código de barras o buscá por nombre…"/>
+          {query && <button className="pos-search-clear" onClick={()=>setQuery("")}><Icon name="x" size={18}/></button>}
+        </div>
+        <div className="cat-chips scroll">
+          <button className={"chip"+(cat==="todos"?" on":"")} onClick={()=>setCat("todos")}>Todos</button>
+          {s.categories.map(c => (
+            <button key={c.id} className={"chip"+(cat===c.id?" on":"")} onClick={()=>setCat(c.id)}>{c.nombre}</button>
+          ))}
+        </div>
+        <div className="prod-grid scroll">
+          {filtered.map(p => (
+            <button key={p.id} className={"prod-card"+(p.stock<=0?" disabled":"")} onClick={()=>addProduct(p)}>
+              <div className="prod-thumb" data-cat={p.cat}>
+                <span>{p.nombre.split(" ").slice(0,2).map(w=>w[0]).join("")}</span>
+                {p.stock<=p.minStock && <span className={"prod-flag "+(p.stock<=0?"out":"low")}></span>}
+              </div>
+              <div className="prod-name">{p.nombre}</div>
+              <div className="prod-foot">
+                <span className="prod-price mono">{fmt(p.precio)}</span>
+                <span className="prod-stock mono">{p.stock} {p.unidad}</span>
+              </div>
+            </button>
+          ))}
+          {filtered.length===0 && (
+            <div className="empty" style={{gridColumn:"1/-1"}}><Icon name="search"/><div>No hay productos que coincidan</div></div>
+          )}
+        </div>
+      </div>
+
+      <div className="pos-right">
+        <div className="ticket">
+          <div className="ticket-head">
+            <div>
+              <div className="ticket-title">Venta actual</div>
+              <div className="ticket-meta">{lines.length} ítems · {POS.cartCount()} unidades</div>
+            </div>
+            {lines.length>0 && (
+              <button className="btn btn-ghost btn-sm" onClick={()=>POS.clearCart()}><Icon name="trash" size={16}/>Vaciar</button>
+            )}
+          </div>
+          <div className="ticket-items scroll">
+            {lines.length===0 && (
+              <div className="empty"><Icon name="cart"/><div>Escaneá o tocá un producto<br/>para empezar la venta</div></div>
+            )}
+            {lines.map(l => (
+              <div className="ticket-line" key={l.productId}>
+                <div className="tl-info">
+                  <div className="tl-name">{l.producto.nombre}</div>
+                  <div className="tl-unit mono">{fmt(l.producto.precio)} c/u</div>
+                </div>
+                <QtyStepper value={l.qty} min={0} onChange={v=>POS.setQty(l.productId,v)}/>
+                <div className="tl-sub mono">{fmt(l.subtotal)}</div>
+                <button className="tl-del" onClick={()=>POS.removeFromCart(l.productId)}><Icon name="x" size={16}/></button>
+              </div>
+            ))}
+          </div>
+          <div className="ticket-foot">
+            <div className="tt-row"><span>Subtotal</span><span className="mono">{fmt(subtotal)}</span></div>
+            <div className="tt-row">
+              <span>Descuento</span>
+              <div className="disc-input">
+                <span className="mono">$</span>
+                <input className="mono" value={s.descuento||""} placeholder="0"
+                  onChange={e=>POS.setDescuento(parseInt(e.target.value.replace(/\D/g,""),10)||0)}/>
+              </div>
+            </div>
+            <div className="tt-total"><span>Total</span><span className="mono">{fmt(total)}</span></div>
+            <button className="btn btn-primary btn-lg btn-block" disabled={lines.length===0} onClick={()=>setCheckout(true)}>
+              <Icon name="cash" size={20}/>Cobrar {fmt(total)}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <CheckoutModal open={checkout} total={total} methods={s.paymentMethods}
+        onClose={()=>setCheckout(false)} onConfirm={confirmSale}/>
+      <ReciboModal data={recibo} settings={s.settings} onClose={()=>setRecibo(null)}/>
+    </div>
+  );
+}
+window.VentaScreen = VentaScreen;
+
+function CheckoutModal({ open, total, methods, onClose, onConfirm }) {
+  const [payments, setPayments] = useStateV([]);
+  useEffectV(()=>{ if(open) setPayments([]); }, [open]);
+
+  const paid = payments.reduce((s,p)=>s+p.amount, 0);
+  const restante = Math.max(0, total-paid);
+  const efectivoPagado = payments.filter(p=>p.method==="efectivo").reduce((s,p)=>s+p.amount, 0);
+  const vuelto = Math.max(0, paid-total);
+  const cubierto = paid>=total;
+
+  function pick(m) { setPayments(ps=>[...ps,{method:m.id,label:m.nombre,amount:restante||total}]); }
+  function setAmt(i,v) { setPayments(ps=>ps.map((p,idx)=>idx===i?{...p,amount:Math.max(0,v)}:p)); }
+  function del(i) { setPayments(ps=>ps.filter((_,idx)=>idx!==i)); }
+
+  const cashQuick = useMemoV(()=>{
+    const opts=new Set();
+    [1000,2000,5000,10000].forEach(b=>opts.add(Math.ceil(total/b)*b));
+    opts.add(total);
+    return Array.from(opts).filter(x=>x>0).sort((a,b)=>a-b).slice(0,4);
+  },[total]);
+
+  const mIcon = {efectivo:"cash",tarjeta:"card",qr:"qr",transferencia:"bank",fiado:"user"};
+
+  return (
+    <Modal open={open} onClose={onClose} max={560}>
+      <div className="modal-head"><Icon name="cash" size={22} style={{color:"var(--green-600)"}}/><h2>Cobrar venta</h2></div>
+      <div className="modal-body">
+        <div className="pay-total"><span>Total a cobrar</span><strong className="mono">{fmt(total)}</strong></div>
+        <div className="section-title" style={{marginTop:18}}>Método de pago</div>
+        <div className="pay-grid">
+          {methods.map(m => (
+            <button key={m.id} className="pay-method" onClick={()=>pick(m)} disabled={cubierto&&restante===0}>
+              <Icon name={mIcon[m.id]||"cash"} size={22}/><span>{m.nombre}</span>
+            </button>
+          ))}
+        </div>
+        {payments.length>0 && (
+          <div className="pay-list">
+            {payments.map((p,i)=>(
+              <div className="pay-row" key={i}>
+                <Icon name={mIcon[p.method]||"cash"} size={18}/>
+                <span className="pay-row-label">{p.label}</span>
+                <div className="disc-input"><span className="mono">$</span>
+                  <input className="mono" value={p.amount} onChange={e=>setAmt(i,parseInt(e.target.value.replace(/\D/g,""),10)||0)}/>
+                </div>
+                <button className="tl-del" onClick={()=>del(i)}><Icon name="x" size={15}/></button>
+              </div>
+            ))}
+            {efectivoPagado>0 && (
+              <div className="cash-quick">
+                {cashQuick.map(q=>(
+                  <button key={q} className="chip" onClick={()=>{
+                    const idx=payments.findIndex(p=>p.method==="efectivo");
+                    if(idx>=0) setAmt(idx,q);
+                  }}>{fmt(q)}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="pay-summary">
+          {restante>0
+            ? <div className="ps-row"><span>Restante</span><span className="mono" style={{color:"var(--danger)"}}>{fmt(restante)}</span></div>
+            : <div className="ps-row"><span>Vuelto</span><span className="mono" style={{color:"var(--green-600)"}}>{fmt(vuelto)}</span></div>}
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+        <button className="btn btn-primary" disabled={!cubierto} onClick={()=>onConfirm(payments,vuelto)}>
+          <Icon name="check" size={18}/>Confirmar venta
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function ReciboModal({ data, settings, onClose }) {
+  if (!data) return null;
+  const {sale, vuelto} = data;
+  return (
+    <Modal open={!!data} onClose={onClose} max={400}>
+      <div className="recibo">
+        <div className="recibo-check"><Icon name="check" size={30}/></div>
+        <div className="recibo-title">Venta confirmada</div>
+        <div className="recibo-amount mono">{fmt(sale.total)}</div>
+        {vuelto>0 && <div className="recibo-vuelto">Vuelto: <strong className="mono">{fmt(vuelto)}</strong></div>}
+        <div className="recibo-ticket">
+          <div className="rt-head">
+            <strong>{settings.negocio}</strong>
+            <span className="muted">{fmtDate(sale.ts)} · {fmtTime(sale.ts)}</span>
+            <span className="muted">Cajero: {sale.cajero}</span>
+          </div>
+          <div className="rt-items">
+            {sale.items.map((it,i)=>(
+              <div className="rt-line" key={i}><span>{it.qty}× {it.nombre}</span><span className="mono">{fmt(it.precio*it.qty)}</span></div>
+            ))}
+          </div>
+          {sale.descuento>0 && <div className="rt-line"><span>Descuento</span><span className="mono">- {fmt(sale.descuento)}</span></div>}
+          <div className="rt-total"><span>TOTAL</span><span className="mono">{fmt(sale.total)}</span></div>
+          <div className="rt-pays">{sale.payments.map((p,i)=><span key={i} className="badge info">{p.label||p.method}: {fmt(p.amount)}</span>)}</div>
+          <div className="rt-foot muted">{settings.ticketFooter}</div>
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={()=>window.print()}><Icon name="receipt" size={18}/>Imprimir</button>
+        <button className="btn btn-primary" onClick={onClose}><Icon name="plus" size={18}/>Nueva venta</button>
+      </div>
+    </Modal>
+  );
+}
+</script>
+
+<!-- STOCK -->
+<script type="text/babel">
+const { useState: useStateS, useEffect: useEffectS, useMemo: useMemoS } = React;
+
+function StockScreen({ pushToast }) {
+  const s = useStore();
+  const [query, setQuery] = useStateS("");
+  const [cat, setCat] = useStateS("todos");
+  const [estado, setEstado] = useStateS("todos");
+  const [editing, setEditing] = useStateS(null);
+
+  const list = useMemoS(()=>{
+    const q = query.trim().toLowerCase();
+    return s.products.filter(p=>{
+      if(cat!=="todos"&&p.cat!==cat) return false;
+      if(estado==="bajo"&&p.stock>p.minStock) return false;
+      if(estado==="sin"&&p.stock>0) return false;
+      if(!q) return true;
+      return p.nombre.toLowerCase().includes(q)||p.barcode.includes(q);
+    });
+  },[s.products,query,cat,estado]);
+
+  const bajos = s.products.filter(p=>p.stock<=p.minStock).length;
+  const valorInventario = s.products.reduce((a,p)=>a+p.costo*p.stock,0);
+  const catName = id=>(s.categories.find(c=>c.id===id)||{}).nombre||id;
+
+  return (
+    <div className="stock-screen">
+      <div className="kpi-grid" style={{gridTemplateColumns:"repeat(3,1fr)",marginBottom:20}}>
+        <div className="kpi"><div className="kpi-label"><Icon name="package"/>Productos</div><div className="kpi-value">{s.products.length}</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="alert"/>Stock bajo / agotado</div><div className="kpi-value" style={{color:bajos?"var(--warn)":"var(--ink)"}}>{bajos}</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="coins"/>Valor inventario (costo)</div><div className="kpi-value mono">{fmt(valorInventario)}</div></div>
+      </div>
+      <div className="card">
+        <div className="card-head" style={{gap:12,flexWrap:"wrap"}}>
+          <div className="pos-search sm" style={{flex:1,minWidth:220}}>
+            <Icon name="search" size={18}/>
+            <input className="pos-search-input" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o código…"/>
+          </div>
+          <select className="select" style={{width:160}} value={cat} onChange={e=>setCat(e.target.value)}>
+            <option value="todos">Todas las categorías</option>
+            {s.categories.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}
+          </select>
+          <select className="select" style={{width:150}} value={estado} onChange={e=>setEstado(e.target.value)}>
+            <option value="todos">Todo el estado</option>
+            <option value="bajo">Stock bajo</option>
+            <option value="sin">Sin stock</option>
+          </select>
+          <button className="btn btn-primary" onClick={()=>setEditing({nuevo:true,nombre:"",cat:s.categories[0].id,barcode:"",precio:0,costo:0,stock:0,minStock:5,unidad:"u"})}>
+            <Icon name="plus" size={18}/>Nuevo producto
+          </button>
+        </div>
+        <div className="scroll" style={{maxHeight:"calc(100vh - 320px)"}}>
+          <table className="table">
+            <thead>
+              <tr><th>Producto</th><th>Código</th><th>Categoría</th><th className="num">Costo</th><th className="num">Precio</th><th className="num">Stock</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              {list.map(p=>(
+                <tr key={p.id}>
+                  <td><strong>{p.nombre}</strong></td>
+                  <td className="mono muted" style={{fontSize:13}}>{p.barcode}</td>
+                  <td><span className="badge info" style={{background:"var(--surface-2)",color:"var(--muted)"}}>{catName(p.cat)}</span></td>
+                  <td className="num mono muted">{fmt(p.costo)}</td>
+                  <td className="num mono"><strong>{fmt(p.precio)}</strong></td>
+                  <td className="num">
+                    <div className="stock-adjust">
+                      <button onClick={()=>POS.adjustStock(p.id,-1)}><Icon name="minus" size={14}/></button>
+                      <span className="mono">{p.stock}</span>
+                      <button onClick={()=>POS.adjustStock(p.id,1)}><Icon name="plus" size={14}/></button>
+                    </div>
+                  </td>
+                  <td><StockBadge p={p}/></td>
+                  <td><button className="icon-btn" onClick={()=>setEditing({...p})}><Icon name="edit" size={17}/></button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {list.length===0 && <div className="empty"><Icon name="box"/><div>No hay productos para este filtro</div></div>}
+        </div>
+      </div>
+      <ProductEditModal editing={editing} categories={s.categories} onClose={()=>setEditing(null)}
+        onSave={p=>{POS.upsertProduct(p);setEditing(null);pushToast(p.nuevo?"Producto creado":"Producto actualizado");}}
+        onDelete={id=>{POS.deleteProduct(id);setEditing(null);pushToast("Producto eliminado","err");}}/>
+    </div>
+  );
+}
+window.StockScreen = StockScreen;
+
+function ProductEditModal({ editing, categories, onClose, onSave, onDelete }) {
+  const [form, setForm] = useStateS(editing);
+  useEffectS(()=>setForm(editing),[editing]);
+  if(!editing) return null;
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const margen = form.precio>0?Math.round((1-form.costo/form.precio)*100):0;
+  return (
+    <Modal open={!!editing} onClose={onClose} max={520}>
+      <div className="modal-head"><Icon name="package" size={22} style={{color:"var(--green-600)"}}/><h2>{editing.nuevo?"Nuevo producto":"Editar producto"}</h2></div>
+      <div className="modal-body col" style={{gap:14}}>
+        <div className="field"><label>Nombre</label><input className="input" value={form.nombre} onChange={e=>set("nombre",e.target.value)} placeholder="Ej. Coca-Cola 500ml"/></div>
+        <div className="row" style={{gap:14}}>
+          <div className="field grow"><label>Código de barras</label><input className="input mono" value={form.barcode} onChange={e=>set("barcode",e.target.value)} placeholder="779…"/></div>
+          <div className="field" style={{width:150}}><label>Categoría</label>
+            <select className="select" value={form.cat} onChange={e=>set("cat",e.target.value)}>
+              {categories.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="row" style={{gap:14}}>
+          <div className="field grow"><label>Costo</label><input className="input mono" value={form.costo} onChange={e=>set("costo",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
+          <div className="field grow"><label>Precio de venta</label><input className="input mono" value={form.precio} onChange={e=>set("precio",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
+          <div className="field" style={{width:110}}><label>Margen</label><div className="input mono" style={{background:"var(--surface-2)",color:margen>=0?"var(--green-700)":"var(--danger)"}}>{margen}%</div></div>
+        </div>
+        <div className="row" style={{gap:14}}>
+          <div className="field grow"><label>Stock actual</label><input className="input mono" value={form.stock} onChange={e=>set("stock",parseFloat(e.target.value.replace(/[^\d.]/g,""))||0)}/></div>
+          <div className="field grow"><label>Stock mínimo</label><input className="input mono" value={form.minStock} onChange={e=>set("minStock",parseInt(e.target.value.replace(/\D/g,""),10)||0)}/></div>
+          <div className="field" style={{width:110}}><label>Unidad</label>
+            <select className="select" value={form.unidad} onChange={e=>set("unidad",e.target.value)}><option value="u">unidad</option><option value="kg">kg</option><option value="lt">litro</option></select>
+          </div>
+        </div>
+      </div>
+      <div className="modal-foot" style={{justifyContent:"space-between"}}>
+        {!editing.nuevo?<button className="btn btn-danger" onClick={()=>onDelete(form.id)}><Icon name="trash" size={17}/>Eliminar</button>:<span></span>}
+        <div className="row gap-sm">
+          <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" disabled={!form.nombre} onClick={()=>onSave(form)}><Icon name="check" size={18}/>Guardar</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+</script>
+
+<!-- REPORTES -->
+<script type="text/babel">
+const { useState: useStateR, useMemo: useMemoR } = React;
+
+function ReportsScreen() {
+  const s = useStore();
+  const [rango, setRango] = useStateR("7");
+
+  const data = useMemoR(()=>{
+    const days = parseInt(rango,10);
+    const from = new Date(); from.setHours(0,0,0,0); from.setDate(from.getDate()-(days-1));
+    const sales = s.sales.filter(v=>new Date(v.ts)>=from);
+    const totalVendido = sales.reduce((a,v)=>a+v.total,0);
+    const costoTotal = sales.reduce((a,v)=>a+v.items.reduce((b,it)=>b+it.costo*it.qty,0),0);
+    const ganancia = totalVendido-costoTotal;
+    const tickets = sales.length;
+    const ticketProm = tickets?totalVendido/tickets:0;
+
+    const byDay=[];
+    for(let d=days-1;d>=0;d--){
+      const day=new Date(); day.setHours(0,0,0,0); day.setDate(day.getDate()-d);
+      const next=new Date(day); next.setDate(next.getDate()+1);
+      const ds=sales.filter(v=>{const t=new Date(v.ts);return t>=day&&t<next;});
+      byDay.push({
+        label:days<=1?"Hoy":day.toLocaleDateString("es-AR",{day:"2-digit",month:days>14?undefined:"short"}).replace(".",""),
+        value:ds.reduce((a,v)=>a+v.total,0),
+      });
+    }
+
+    const byMethod={};
+    sales.forEach(v=>v.payments.forEach(p=>{byMethod[p.method]=(byMethod[p.method]||0)+p.amount;}));
+
+    const prod={};
+    sales.forEach(v=>v.items.forEach(it=>{
+      if(!prod[it.productId]) prod[it.productId]={nombre:it.nombre,qty:0,total:0};
+      prod[it.productId].qty+=it.qty; prod[it.productId].total+=it.precio*it.qty;
+    }));
+    const top=Object.values(prod).sort((a,b)=>b.total-a.total).slice(0,6);
+    return {totalVendido,ganancia,tickets,ticketProm,byDay,byMethod,top,costoTotal};
+  },[s.sales,rango]);
+
+  const methodLabels={efectivo:"Efectivo",tarjeta:"Tarjeta",qr:"QR / Billetera",transferencia:"Transferencia",fiado:"Fiado"};
+  const methodIcon={efectivo:"cash",tarjeta:"card",qr:"qr",transferencia:"bank",fiado:"user"};
+  const totalMethods=Object.values(data.byMethod).reduce((a,b)=>a+b,0)||1;
+
+  return (
+    <div className="reports-screen">
+      <div className="row spread" style={{marginBottom:18}}>
+        <div className="seg">
+          {[["1","Hoy"],["7","7 días"],["30","30 días"]].map(([v,l])=>(
+            <button key={v} className={"seg-btn"+(rango===v?" on":"")} onClick={()=>setRango(v)}>{l}</button>
+          ))}
+        </div>
+        <button className="btn btn-ghost"><Icon name="download" size={18}/>Exportar</button>
+      </div>
+      <div className="kpi-grid" style={{marginBottom:20}}>
+        <div className="kpi"><div className="kpi-label"><Icon name="cash"/>Ventas totales</div><div className="kpi-value mono">{fmt(data.totalVendido)}</div><div className="kpi-delta up">{data.tickets} tickets</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="coins"/>Ganancia estimada</div><div className="kpi-value mono">{fmt(data.ganancia)}</div><div className="kpi-delta up">{data.totalVendido?Math.round(data.ganancia/data.totalVendido*100):0}% margen</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="receipt"/>Ticket promedio</div><div className="kpi-value mono">{fmt(data.ticketProm)}</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="package"/>Costo de mercadería</div><div className="kpi-value mono">{fmt(data.costoTotal)}</div></div>
+      </div>
+      <div className="report-cols">
+        <div className="card grow">
+          <div className="card-head"><Icon name="chart" size={18}/><h3>Ventas por día</h3></div>
+          <div className="card-pad"><BarChart data={data.byDay} height={220}/></div>
+        </div>
+        <div className="card" style={{width:320,flex:"0 0 320px"}}>
+          <div className="card-head"><Icon name="card" size={18}/><h3>Por medio de pago</h3></div>
+          <div className="card-pad col" style={{gap:14}}>
+            {Object.keys(data.byMethod).length===0 && <div className="muted">Sin datos</div>}
+            {Object.entries(data.byMethod).sort((a,b)=>b[1]-a[1]).map(([m,v])=>(
+              <div key={m}>
+                <div className="row spread" style={{marginBottom:6}}>
+                  <span className="row gap-sm" style={{fontWeight:600,fontSize:13.5}}><Icon name={methodIcon[m]} size={16}/>{methodLabels[m]||m}</span>
+                  <span className="mono" style={{fontWeight:700}}>{fmt(v)}</span>
+                </div>
+                <div className="bar-track"><div className="bar-fill" style={{width:(v/totalMethods*100)+"%"}}></div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="card" style={{marginTop:20}}>
+        <div className="card-head"><Icon name="tag" size={18}/><h3>Productos más vendidos</h3></div>
+        <table className="table">
+          <thead><tr><th>#</th><th>Producto</th><th className="num">Unidades</th><th className="num">Facturado</th></tr></thead>
+          <tbody>
+            {data.top.map((p,i)=>(
+              <tr key={i}><td className="mono muted">{i+1}</td><td><strong>{p.nombre}</strong></td><td className="num mono">{p.qty}</td><td className="num mono"><strong>{fmt(p.total)}</strong></td></tr>
+            ))}
+            {data.top.length===0 && <tr><td colSpan="4"><div className="empty"><Icon name="chart"/><div>Aún no hay ventas en este período</div></div></td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+window.ReportsScreen = ReportsScreen;
+</script>
+
+<!-- CAJA -->
+<script type="text/babel">
+const { useState: useStateC, useEffect: useEffectC, useMemo: useMemoC } = React;
+
+function CajaScreen({ pushToast }) {
+  const s = useStore();
+  const session = POS.currentSession();
+  const [counts, setCounts] = useStateC({efectivo:"",tarjeta:"",qr:"",transferencia:""});
+  const [done, setDone] = useStateC(null);
+
+  const ventasSesion = useMemoC(()=>session?s.sales.filter(v=>v.sessionId===session.id):[], [s.sales,session]);
+  const espera = useMemoC(()=>{
+    const m={};
+    ventasSesion.forEach(v=>v.payments.forEach(p=>{m[p.method]=(m[p.method]||0)+p.amount;}));
+    return m;
+  },[ventasSesion]);
+
+  const esperaEfectivo=(espera.efectivo||0)+(session?session.openingAmount:0);
+  const totalVendido=ventasSesion.reduce((a,v)=>a+v.total,0);
+
+  function cerrar(){
+    const counted={
+      efectivo:parseInt(counts.efectivo||0,10)||0,
+      tarjeta:parseInt(counts.tarjeta||0,10)||0,
+      qr:parseInt(counts.qr||0,10)||0,
+      transferencia:parseInt(counts.transferencia||0,10)||0,
+    };
+    const res=POS.closeSession(counted);
+    if(res.ok){setDone(res.session);pushToast("Caja cerrada");}
+  }
+
+  const sesionesPrev=s.cashSessions.filter(x=>x.status==="cerrada").slice().reverse();
+
+  if(!session){
+    return(
+      <div className="caja-screen">
+        <div className="card card-pad" style={{maxWidth:460,margin:"0 auto",textAlign:"center"}}>
+          <div className="recibo-check" style={{margin:"0 auto 16px"}}><Icon name="cash" size={28}/></div>
+          <h3 style={{margin:"0 0 6px"}}>No hay una caja abierta</h3>
+          <p className="muted" style={{marginTop:0}}>Abrí la caja con el monto inicial de efectivo para empezar a operar.</p>
+          <AbrirCaja onOpen={monto=>{POS.openSession(monto);pushToast("Caja abierta");}}/>
+        </div>
+        {sesionesPrev.length>0 && <HistorialCajas sesiones={sesionesPrev}/>}
+      </div>
+    );
+  }
+
+  const filas=[
+    {id:"efectivo",  label:"Efectivo",      esperado:esperaEfectivo, hint:"incluye fondo inicial "+fmt(session.openingAmount)},
+    {id:"tarjeta",   label:"Tarjeta",        esperado:espera.tarjeta||0},
+    {id:"qr",        label:"QR / Billetera", esperado:espera.qr||0},
+    {id:"transferencia",label:"Transferencia",esperado:espera.transferencia||0},
+  ];
+
+  return(
+    <div className="caja-screen">
+      <div className="caja-cols">
+        <div className="card grow">
+          <div className="card-head"><Icon name="clock" size={18}/><h3>Sesión actual</h3>
+            <span className="session-pill" style={{marginLeft:"auto"}}><span className="dot"></span>Abierta</span>
+          </div>
+          <div className="card-pad">
+            <div className="caja-meta">
+              <div><span className="muted">Cajero</span><strong>{session.cajero}</strong></div>
+              <div><span className="muted">Apertura</span><strong>{fmtDate(session.openedAt,{day:"2-digit",month:"short"})} · {fmtTime(session.openedAt)}</strong></div>
+              <div><span className="muted">Fondo inicial</span><strong className="mono">{fmt(session.openingAmount)}</strong></div>
+              <div><span className="muted">Tickets</span><strong>{ventasSesion.length}</strong></div>
+            </div>
+            <hr className="hr"/>
+            <div className="row spread" style={{fontSize:15}}>
+              <span style={{fontWeight:700}}>Total vendido en la sesión</span>
+              <span className="mono" style={{fontWeight:800,fontSize:22,color:"var(--green-700)"}}>{fmt(totalVendido)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{width:440,flex:"0 0 440px"}}>
+          <div className="card-head"><Icon name="coins" size={18}/><h3>Arqueo de caja</h3></div>
+          <div className="card-pad col" style={{gap:14}}>
+            <div className="arqueo-head"><span>Medio</span><span className="right">Esperado</span><span className="right">Contado</span></div>
+            {filas.map(f=>{
+              return(
+                <div className="arqueo-row" key={f.id}>
+                  <div className="ar-label"><strong>{f.label}</strong>{f.hint&&<span className="muted">{f.hint}</span>}</div>
+                  <div className="ar-exp mono">{fmt(f.esperado)}</div>
+                  <div className="disc-input"><span className="mono">$</span>
+                    <input className="mono" value={counts[f.id]} placeholder="0"
+                      onChange={e=>setCounts(c=>({...c,[f.id]:e.target.value.replace(/\D/g,"")}))}/>
+                  </div>
+                </div>
+              );
+            })}
+            <hr className="hr"/>
+            {(()=>{
+              const diffEf=(parseInt(counts.efectivo||0,10)||0)-esperaEfectivo;
+              return(
+                <div className="row spread">
+                  <span style={{fontWeight:700}}>Diferencia en efectivo</span>
+                  <span className="mono" style={{fontWeight:800,fontSize:18,color:diffEf===0?"var(--green-600)":diffEf>0?"var(--info)":"var(--danger)"}}>
+                    {diffEf>0?"+":""}{fmt(diffEf)}
+                  </span>
+                </div>
+              );
+            })()}
+            <button className="btn btn-primary btn-lg btn-block" onClick={cerrar}><Icon name="check" size={20}/>Cerrar caja</button>
+          </div>
+        </div>
+      </div>
+
+      {sesionesPrev.length>0 && <HistorialCajas sesiones={sesionesPrev}/>}
+
+      <Modal open={!!done} onClose={()=>setDone(null)} max={420}>
+        {done&&(
+          <div className="recibo">
+            <div className="recibo-check"><Icon name="check" size={30}/></div>
+            <div className="recibo-title">Caja cerrada</div>
+            <div className="recibo-amount mono">{fmt(done.totalVendido)}</div>
+            <div className="muted">{done.ticketCount} tickets · {fmtDate(done.closedAt)} {fmtTime(done.closedAt)}</div>
+            <div className="recibo-ticket">
+              <div className="rt-line"><span>Esperado en efectivo</span><span className="mono">{fmt(done.expectedEfectivo)}</span></div>
+              <div className="rt-line"><span>Contado</span><span className="mono">{fmt(done.counted.efectivo)}</span></div>
+              <div className="rt-total"><span>DIFERENCIA</span><span className="mono" style={{color:done.difference===0?"var(--green-600)":"var(--danger)"}}>{done.difference>0?"+":""}{fmt(done.difference)}</span></div>
+            </div>
+          </div>
+        )}
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={()=>window.print()}><Icon name="receipt" size={18}/>Imprimir Z</button>
+          <button className="btn btn-primary" onClick={()=>setDone(null)}>Listo</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+window.CajaScreen = CajaScreen;
+
+function AbrirCaja({ onOpen }) {
+  const [monto, setMonto] = useStateC("10000");
+  return(
+    <div className="row gap-sm" style={{justifyContent:"center",marginTop:16}}>
+      <div className="disc-input" style={{fontSize:16}}><span className="mono">$</span>
+        <input className="mono" value={monto} onChange={e=>setMonto(e.target.value.replace(/\D/g,""))} style={{width:110}}/>
+      </div>
+      <button className="btn btn-primary" onClick={()=>onOpen(parseInt(monto||0,10)||0)}><Icon name="cash" size={18}/>Abrir caja</button>
+    </div>
+  );
+}
+
+function HistorialCajas({ sesiones }) {
+  return(
+    <div className="card" style={{marginTop:20}}>
+      <div className="card-head"><Icon name="receipt" size={18}/><h3>Cierres anteriores</h3></div>
+      <table className="table">
+        <thead><tr><th>Fecha</th><th>Cajero</th><th className="num">Tickets</th><th className="num">Vendido</th><th className="num">Diferencia</th></tr></thead>
+        <tbody>
+          {sesiones.map(x=>(
+            <tr key={x.id}>
+              <td>{fmtDate(x.closedAt,{day:"2-digit",month:"short"})} · {fmtTime(x.closedAt)}</td>
+              <td>{x.cajero}</td>
+              <td className="num mono">{x.ticketCount}</td>
+              <td className="num mono"><strong>{fmt(x.totalVendido)}</strong></td>
+              <td className="num mono" style={{color:x.difference===0?"var(--green-600)":"var(--danger)"}}>{x.difference>0?"+":""}{fmt(x.difference)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+</script>
+
+<!-- ADMIN -->
+<script type="text/babel">
+const { useState: useStateA, useEffect: useEffectA } = React;
+
+function AdminScreen({ pushToast }) {
+  const s = useStore();
+  const [tab, setTab] = useStateA("resumen");
+  return(
+    <div className="admin-screen">
+      <div className="seg" style={{marginBottom:18}}>
+        {[["resumen","Resumen"],["negocio","Datos del negocio"],["usuarios","Usuarios"],["sistema","Sistema"]].map(([v,l])=>(
+          <button key={v} className={"seg-btn"+(tab===v?" on":"")} onClick={()=>setTab(v)}>{l}</button>
+        ))}
+      </div>
+      {tab==="resumen"&&<AdminResumen s={s}/>}
+      {tab==="negocio"&&<AdminNegocio s={s} pushToast={pushToast}/>}
+      {tab==="usuarios"&&<AdminUsuarios s={s}/>}
+      {tab==="sistema"&&<AdminSistema pushToast={pushToast}/>}
+    </div>
+  );
+}
+window.AdminScreen = AdminScreen;
+
+function AdminResumen({ s }) {
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const ventasHoy=s.sales.filter(v=>new Date(v.ts)>=hoy);
+  const totalHoy=ventasHoy.reduce((a,v)=>a+v.total,0);
+  const bajos=s.products.filter(p=>p.stock<=p.minStock);
+  const valorInv=s.products.reduce((a,p)=>a+p.costo*p.stock,0);
+  const session=POS.currentSession();
+  return(
+    <div className="col" style={{gap:20}}>
+      <div className="kpi-grid">
+        <div className="kpi"><div className="kpi-label"><Icon name="cash"/>Ventas de hoy</div><div className="kpi-value mono">{fmt(totalHoy)}</div><div className="kpi-delta up">{ventasHoy.length} tickets</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="package"/>Productos activos</div><div className="kpi-value">{s.products.length}</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="alert"/>Necesitan reposición</div><div className="kpi-value" style={{color:bajos.length?"var(--warn)":"var(--ink)"}}>{bajos.length}</div></div>
+        <div className="kpi"><div className="kpi-label"><Icon name="coins"/>Valor inventario</div><div className="kpi-value mono">{fmt(valorInv)}</div></div>
+      </div>
+      <div className="report-cols">
+        <div className="card grow">
+          <div className="card-head"><Icon name="alert" size={18}/><h3>Reposición pendiente</h3>
+            {bajos.length>0&&<span className="badge low" style={{marginLeft:"auto"}}>{bajos.length}</span>}
+          </div>
+          <div className="scroll" style={{maxHeight:320}}>
+            {bajos.length===0&&<div className="empty"><Icon name="check"/><div>Todo el stock está en orden</div></div>}
+            {bajos.map(p=>(
+              <div className="repo-row" key={p.id}>
+                <div><strong>{p.nombre}</strong><div className="muted" style={{fontSize:12.5}}>Mínimo: {p.minStock} {p.unidad}</div></div>
+                <StockBadge p={p}/>
+                <span className="mono" style={{fontWeight:700,width:60,textAlign:"right"}}>{p.stock} {p.unidad}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card" style={{width:340,flex:"0 0 340px"}}>
+          <div className="card-head"><Icon name="clock" size={18}/><h3>Estado de caja</h3></div>
+          <div className="card-pad">
+            {session?(
+              <div className="col" style={{gap:12}}>
+                <span className="session-pill"><span className="dot"></span>Caja abierta · {session.cajero}</span>
+                <div className="row spread"><span className="muted">Desde</span><strong>{fmtTime(session.openedAt)}</strong></div>
+                <div className="row spread"><span className="muted">Fondo inicial</span><strong className="mono">{fmt(session.openingAmount)}</strong></div>
+                <div className="row spread"><span className="muted">Vendido</span><strong className="mono">{fmt(s.sales.filter(v=>v.sessionId===session.id).reduce((a,v)=>a+v.total,0))}</strong></div>
+              </div>
+            ):<div className="empty"><Icon name="cash"/><div>No hay caja abierta</div></div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminNegocio({ s, pushToast }) {
+  const [form, setForm] = useStateA(s.settings);
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  return(
+    <div className="card" style={{maxWidth:640}}>
+      <div className="card-head"><Icon name="settings" size={18}/><h3>Datos del negocio</h3></div>
+      <div className="card-pad col" style={{gap:14}}>
+        <div className="field"><label>Nombre del comercio</label><input className="input" value={form.negocio} onChange={e=>set("negocio",e.target.value)}/></div>
+        <div className="row" style={{gap:14}}>
+          <div className="field grow"><label>CUIT</label><input className="input mono" value={form.cuit} onChange={e=>set("cuit",e.target.value)}/></div>
+          <div className="field grow"><label>Moneda</label><input className="input" value={form.moneda} disabled/></div>
+        </div>
+        <div className="field"><label>Dirección</label><input className="input" value={form.direccion} onChange={e=>set("direccion",e.target.value)}/></div>
+        <div className="field"><label>Pie de ticket</label><input className="input" value={form.ticketFooter} onChange={e=>set("ticketFooter",e.target.value)}/></div>
+        <div className="row" style={{justifyContent:"flex-end"}}>
+          <button className="btn btn-primary" onClick={()=>{POS.updateSettings(form);pushToast("Datos guardados");}}><Icon name="check" size={18}/>Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminUsuarios({ s }) {
+  return(
+    <div className="card" style={{maxWidth:640}}>
+      <div className="card-head"><Icon name="user" size={18}/><h3>Usuarios del sistema</h3>
+        <button className="btn btn-ghost btn-sm" style={{marginLeft:"auto"}}><Icon name="plus" size={16}/>Agregar</button>
+      </div>
+      <table className="table">
+        <thead><tr><th>Usuario</th><th>Rol</th><th>PIN</th><th></th></tr></thead>
+        <tbody>
+          {s.users.map(u=>(
+            <tr key={u.id}>
+              <td><div className="row gap-sm"><span className="avatar" style={{width:30,height:30,fontSize:13}}>{u.inicial}</span><strong>{u.nombre}</strong></div></td>
+              <td><span className={"badge "+(u.rol==="Administrador"?"ok":"info")}>{u.rol}</span></td>
+              <td className="mono muted">••••</td>
+              <td className="right"><button className="icon-btn"><Icon name="edit" size={17}/></button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AdminSistema({ pushToast }) {
+  return(
+    <div className="card" style={{maxWidth:640}}>
+      <div className="card-head"><Icon name="settings" size={18}/><h3>Datos del sistema</h3></div>
+      <div className="card-pad col" style={{gap:16}}>
+        <p className="muted" style={{margin:0}}>Los datos se guardan en este navegador (localStorage). Podés reiniciar todo a los datos de demostración.</p>
+        <div className="row gap-sm">
+          <button className="btn btn-danger" onClick={()=>{if(confirm("¿Reiniciar todos los datos? Se perderán ventas y cambios.")){POS.resetAll();pushToast("Datos reiniciados");}}}>
+            <Icon name="trash" size={17}/>Reiniciar datos de demo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+</script>
+
+<!-- APP SHELL -->
+<script type="text/babel">
+const { useState: useStateApp } = React;
+
+function App() {
+  const s = useStore();
+  const [route, setRoute] = useStateApp("venta");
+  const [pushToast, toastNode] = useToasts();
+  const now = useClock();
+
+  if (!s.user) return (<><LoginScreen onLogged={()=>setRoute("venta")}/>{toastNode}</>);
+
+  const bajos = s.products.filter(p=>p.stock<=p.minStock).length;
+  const session = POS.currentSession();
+
+  const nav=[
+    {id:"venta",    label:"Venta",            icon:"cart"},
+    {id:"stock",    label:"Control de stock",  icon:"box", badge:bajos||null},
+    {id:"reportes", label:"Reportes",          icon:"chart"},
+    {id:"caja",     label:"Cierre de caja",    icon:"cash"},
+    {id:"admin",    label:"Administración",    icon:"shield"},
+  ];
+  const titles={
+    venta:    ["Venta","Punto de venta · escaneá o buscá productos"],
+    stock:    ["Control de stock","Inventario y reposición"],
+    reportes: ["Reportes de ventas","Análisis del negocio"],
+    caja:     ["Cierre de caja","Arqueo y control de efectivo"],
+    admin:    ["Administración","Configuración y resumen general"],
+  };
+
+  return(
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">{(s.settings.negocio||"M")[0]}</div>
+          <div><div className="brand-name">{s.settings.negocio}</div><div className="brand-sub">Punto de venta</div></div>
+        </div>
+        <nav className="nav">
+          <div className="nav-section">Operación</div>
+          {nav.slice(0,4).map(n=>(
+            <button key={n.id} className={"nav-item"+(route===n.id?" active":"")} onClick={()=>setRoute(n.id)}>
+              <Icon name={n.icon}/>{n.label}{n.badge?<span className="nav-badge">{n.badge}</span>:null}
+            </button>
+          ))}
+          <div className="nav-section">Gestión</div>
+          {nav.slice(4).map(n=>(
+            <button key={n.id} className={"nav-item"+(route===n.id?" active":"")} onClick={()=>setRoute(n.id)}>
+              <Icon name={n.icon}/>{n.label}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-foot col gap-sm">
+          <div className="user-chip">
+            <span className="avatar">{s.user.inicial}</span>
+            <div className="grow"><div className="user-name">{s.user.nombre}</div><div className="user-role">{s.user.rol}</div></div>
+            <button className="icon-btn" title="Cerrar sesión" onClick={()=>POS.logout()}><Icon name="logout" size={18}/></button>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <header className="topbar">
+          <div><h1>{titles[route][0]}</h1></div>
+          <div className="topbar-right">
+            {session
+              ? <span className="session-pill"><span className="dot"></span>Caja abierta</span>
+              : <span className="session-pill" style={{background:"var(--warn-bg)",color:"var(--warn)"}}><span className="dot" style={{background:"var(--warn)",boxShadow:"none"}}></span>Caja cerrada</span>}
+            <span className="clock mono">{fmtDate(now,{weekday:"short",day:"2-digit",month:"short"})} · {fmtTime(now)}</span>
+          </div>
+        </header>
+        <div className={"content"+(route==="venta"?" flush":"")}>
+          {route==="venta"    && <VentaScreen pushToast={pushToast}/>}
+          {route==="stock"    && <StockScreen pushToast={pushToast}/>}
+          {route==="reportes" && <ReportsScreen/>}
+          {route==="caja"     && <CajaScreen pushToast={pushToast}/>}
+          {route==="admin"    && <AdminScreen pushToast={pushToast}/>}
+        </div>
+      </main>
+      {toastNode}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
